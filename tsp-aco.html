@@ -1,4 +1,4 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="dist/jquery.min.js"></script>
 <script type="text/javascript">
 "use strict"
 
@@ -191,11 +191,20 @@ var ACArtist = (function() {
     
         this._ac.getGraph().addCity(this._canvas.getMouseX(), this._canvas.getMouseY());
         this._ac.getGraph().createEdges();
-        
         clearInterval(this._animationIterator);
         this._ac.reset();
 
         this._draw();
+    };
+
+    ACArtist.prototype._add_data = function(data) { 
+        for (var i = 0; i < data.length; i++) {
+            this._ac.getGraph().addCity(data[i][0], data[i][1]);
+            this._ac.getGraph().createEdges();
+            clearInterval(this._animationIterator);
+            this._ac.reset();
+            this._draw();
+        }    
     };
     
     ACArtist.prototype._draw = function() {
@@ -229,7 +238,6 @@ var ACArtist = (function() {
 
     ACArtist.prototype._drawNodes = function() {  
         var nodes = this._ac.getGraph().getCities();
-        
         for (var nodeIndex in nodes) {
             this._canvas.drawCircle(nodes[nodeIndex].getX(), nodes[nodeIndex].getY(), { 'alpha': 0.8 });
         }
@@ -349,6 +357,131 @@ var ACArtist = (function() {
 
     return ACArtist;
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var DataManager = (function(){
+
+    function DataManager(ac) {
+        this.dataWasjustLoaded= false;
+        this.loaded_points=[];
+        this.ac=ac;
+        var saveCustomPoints = document.getElementById('save_personal_points');
+        saveCustomPoints.addEventListener('click', saveCustomPointsFunction);
+
+        var fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', loadDataSet);
+
+        function saveCustomPointsFunction(e) 
+        {
+            var numberOfPoints = ac._ac.getGraph().getCities().length;
+            if(numberOfPoints == 0)
+                return;
+            var linejump = "\n";
+            var blankspace = " ";
+            var resultString = "NAME: " + "custom" + numberOfPoints + linejump +
+                "TYPE: TSP\n" +
+                "COMMENT: \n" +
+                "DIMENSION: " + numberOfPoints + linejump +
+                "NODE_COORD_SECTION\n";
+            for(var i = 0; i < numberOfPoints; i++)
+            {
+                resultString+= (i+1).toString() + blankspace + (ac._ac.getGraph().getCities()[i]._x).toString()
+                    + blankspace + (ac._ac.getGraph().getCities()[i]._y).toString() + linejump;
+            }
+            resultString+= "EOF";
+            console.log(resultString);
+        }
+
+        var localDataOfThis = this;
+        function loadDataSet(e) {
+            localDataOfThis.loaded_points= [];
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var resultByLine= reader.result.split('\n');
+                var temp;
+                var arrivedToData=false;
+                var widthCanvas = localDataOfThis.ac._canvas.getWidth();
+                var heightCanvas = localDataOfThis.ac._canvas.getHeight();
+                var maxValWidth= 0;
+                var minValWidth= 1000000;
+                var maxValHeight= 0;
+                var minValHeight= 1000000;
+                for (var i = 0; i < resultByLine.length; i++) {
+                    if(resultByLine[i] == "EOF")
+                        arrivedToData=false;
+                    if(arrivedToData){
+                        temp= resultByLine[i].split(/\ +/);
+                        if(temp[1] > maxValWidth) maxValWidth=parseInt(temp[1]);
+                        if(temp[1] < minValWidth) minValWidth=parseInt(temp[1]);
+                        if(temp[2] > maxValHeight) maxValHeight=parseInt(temp[2]);
+                        if(temp[2] < minValHeight) minValHeight=parseInt(temp[2]);
+                        localDataOfThis.loaded_points.push([parseInt(temp[1]), parseInt(temp[2])]);
+                    }
+                    if(resultByLine[i] == "NODE_COORD_SECTION")
+                        arrivedToData=true;
+                }
+                for(var i = 0; i < localDataOfThis.loaded_points.length; i++)
+                {
+                    localDataOfThis.loaded_points[i][0]= (localDataOfThis.loaded_points[i][0]-minValWidth)/(maxValWidth-minValWidth);
+                    localDataOfThis.loaded_points[i][0]= localDataOfThis.loaded_points[i][0]*
+                            (95/100*widthCanvas - 5/100*widthCanvas) + 5/100*widthCanvas;
+                    localDataOfThis.loaded_points[i][1]= (localDataOfThis.loaded_points[i][1]-minValHeight)/(maxValHeight-minValHeight);
+                    localDataOfThis.loaded_points[i][1] = localDataOfThis.loaded_points[i][1]*
+                            (95/100*heightCanvas - 5/100*heightCanvas) + 5/100*heightCanvas;
+                }
+            }
+            reader.readAsText(file);
+            localDataOfThis.dataWasjustLoaded=true;    
+        }
+    }
+
+    DataManager.prototype._getPossibleSets = function() {
+
+    };
+
+    DataManager.prototype._importeSelectedSet = function() {
+       
+    };
+
+    DataManager.prototype._addDataToCanvas = function() {
+        this.ac._add_data(this.loaded_points);
+    };
+
+    return DataManager;
+})();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 var Graph = (function () {
     function Graph() {
@@ -857,10 +990,29 @@ var Tour = (function () {
     return Tour;
 })();
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 $(document).ready(function(){
     var antCanvas = new Canvas('#aco-canvas', 700, 440);
     var ac = new AntColony();
     var acArtist = new ACArtist(ac, antCanvas);
+    var dataManager = new DataManager(acArtist);
+    dataManager._importeSelectedSet();
 
     $('#aco-params select').change(function() {
         acArtist.stop();
@@ -897,8 +1049,13 @@ $(document).ready(function(){
     setParams();
 
     $('#start-search-btn').click(function() {
-        if (!ac.ready()) {
+        if (!ac.ready() && !dataManager.dataWasjustLoaded) {
             loadPopup({msg:'Please add at least two destination nodes'});
+        }
+        if(dataManager.dataWasjustLoaded)
+        {
+            dataManager._addDataToCanvas();
+            dataManager.dataWasjustLoaded=false;
         }
 
         $('.aco-info').show();
@@ -914,7 +1071,8 @@ $(document).ready(function(){
 </script>
 <div class="fill pad">
 	<div style="border:1px solid #ccc" id="aco-canvas"></div>
-
+    <input type="file" id="fileInput">
+    <button id="save_personal_points">Save</button>
     <div class="hr vpad"></div>
     <div>
         <table>

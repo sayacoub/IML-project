@@ -377,48 +377,129 @@ var ACArtist = (function() {
 
 var DataManager = (function(){
 
-    function DataManager(ac) {
+    function DataManager(acArtist) {
+        this.loadedDataset = {};
+        this.loadedDataset.name="";
+        this.loadedDataset.loaded_points=[];
         this.dataWasjustLoaded= false;
-        this.loaded_points=[];
-        this.ac=ac;
+        this.currentPointsComeFromDataset=false;
+        this.acArtist=acArtist;
+        this._importAvailableDatasetList();
+        this._saveCustomPointsListener(acArtist);
+        this._importSelectedDatasetListener();
+    }
+
+    DataManager.prototype._importAvailableDatasetList = function() {
+        var choiceDataset = "burma14,14,14-Staedte in Burma\n"+
+            "baysg29,29,29 Cities in Bavaria\n"+
+            "dantzig42,42,42 cities (Dantzig)\n"+
+            "att48,48,48 capitals of the US\n"+
+            "berlin52,52,52 locations in Berlin\n"+
+            "eil76,76,76-city problem\n"+
+            "eil101,101,101-city problem\n"+
+            "bier127,127,127 Biergaerten in Augsburg\n"+
+            "ch130,130,130 city problem\n"+
+            "ch150,150,150 city Problem\n"+
+            "kroA200,200,200-city problem A";
+        var resultByLine= choiceDataset.split('\n');
+        var datasetSelect = document.getElementById('dataset_selection');
+        var opt = document.createElement('option');
+        opt.value = "empty";
+        opt.innerHTML = "--";
+        datasetSelect.appendChild(opt);
+
+        var temp;
+        for (var i = 0; i<resultByLine.length; i++){
+            temp = resultByLine[i].split(",");
+            var opt = document.createElement('option');
+            opt.value = temp[0];
+            opt.innerHTML = temp[1] + " points - " + temp[2];
+            datasetSelect.appendChild(opt);
+        }
+    };
+
+    DataManager.prototype._saveCustomPointsListener = function(acArtist) {
+        //console.log(acArtist.getGlobalBest());
         var saveCustomPoints = document.getElementById('save_personal_points');
         saveCustomPoints.addEventListener('click', saveCustomPointsFunction);
+        var localDataOfThis = this;
+        function saveCustomPointsFunction(e) 
+        {
+            var ant = acArtist._ac.getGlobalBest();
+            if(!ant)
+                return;
+            var tour = ant.getTour()._tour;
+            var numberOfPoints = tour.length;
+            var linejump = "\n";
+            var blankspace = " ";
+            //If it's the loaded dataset without point addition
+            if(localDataOfThis.loadedDataset.loaded_points.length == numberOfPoints)
+            {
+                var resultString = "NAME: " + localDataOfThis.loadedDataset.name + ".opt.tour" + linejump +
+                    "TYPE: TSP\n" +
+                    "COMMENT: Optimal solution\n" +
+                    "DIMENSION: " + numberOfPoints + linejump +
+                    "TOUR_SECTION\n";
+                var indexOfFirstPoint = tour.indexOf(localDataOfThis.loadedDataset.loaded_points[0]);
+                var j=0;
+                var cityFound=false;
+                console.log(localDataOfThis.loadedDataset.loaded_points[0][0], tour[0]._x )
+                for(var i = 0; i < numberOfPoints; i++)
+                {
+                    if(i+indexOfFirstPoint == numberOfPoints)
+                        indexOfFirstPoint==-i;
+                    while(j < numberOfPoints && !cityFound)
+                    {
+                        if(localDataOfThis.loadedDataset.loaded_points[j][0]==tour[i]._x 
+                            && localDataOfThis.loadedDataset.loaded_points[j][1]==tour[i]._y)
+                            cityFound=true;
+                        j++;
+                    }
+                    resultString+= (j).toString() 
+                        + linejump;
+                    j=0;
+                    cityFound=false;
+                }
+                resultString+= "-1\n";
+            }
+            else
+            {
+                var resultString = "NAME: " + "custom" + numberOfPoints + linejump +
+                    "TYPE: TSP\n" +
+                    "COMMENT: \n" +
+                    "DIMENSION: " + numberOfPoints + linejump +
+                    "NODE_COORD_SECTION\n";
+                for(var i = 0; i < numberOfPoints; i++)
+                {
+                    resultString+= (i+1).toString() + blankspace + (tour[i]._x).toString()
+                        + blankspace + (tour[i]._y).toString() + linejump;
+                }
+            }
+            resultString+= "EOF";
 
+            
+            
+            
+            console.log(resultString);
+        }
+    };
+
+    DataManager.prototype._importSelectedDatasetListener = function() {
         var fileInput = document.getElementById('fileInput');
         fileInput.addEventListener('change', loadDataSet);
 
-        function saveCustomPointsFunction(e) 
-        {
-            var numberOfPoints = ac._ac.getGraph().getCities().length;
-            if(numberOfPoints == 0)
-                return;
-            var linejump = "\n";
-            var blankspace = " ";
-            var resultString = "NAME: " + "custom" + numberOfPoints + linejump +
-                "TYPE: TSP\n" +
-                "COMMENT: \n" +
-                "DIMENSION: " + numberOfPoints + linejump +
-                "NODE_COORD_SECTION\n";
-            for(var i = 0; i < numberOfPoints; i++)
-            {
-                resultString+= (i+1).toString() + blankspace + (ac._ac.getGraph().getCities()[i]._x).toString()
-                    + blankspace + (ac._ac.getGraph().getCities()[i]._y).toString() + linejump;
-            }
-            resultString+= "EOF";
-            console.log(resultString);
-        }
-
         var localDataOfThis = this;
         function loadDataSet(e) {
-            localDataOfThis.loaded_points= [];
+            localDataOfThis.loadedDataset.loaded_points= [];
             var file = fileInput.files[0];
             var reader = new FileReader();
             reader.onload = function(e) {
                 var resultByLine= reader.result.split('\n');
+                localDataOfThis.loadedDataset.name=resultByLine[0].split(/\ +/)[1];
                 var temp;
                 var arrivedToData=false;
-                var widthCanvas = localDataOfThis.ac._canvas.getWidth();
-                var heightCanvas = localDataOfThis.ac._canvas.getHeight();
+                var widthCanvas = localDataOfThis.acArtist._canvas.getWidth();
+                var heightCanvas = localDataOfThis.acArtist._canvas.getHeight();
                 var maxValWidth= 0;
                 var minValWidth= 1000000;
                 var maxValHeight= 0;
@@ -432,36 +513,29 @@ var DataManager = (function(){
                         if(temp[1] < minValWidth) minValWidth=parseInt(temp[1]);
                         if(temp[2] > maxValHeight) maxValHeight=parseInt(temp[2]);
                         if(temp[2] < minValHeight) minValHeight=parseInt(temp[2]);
-                        localDataOfThis.loaded_points.push([parseInt(temp[1]), parseInt(temp[2])]);
+                        localDataOfThis.loadedDataset.loaded_points.push([parseInt(temp[1]), parseInt(temp[2])]);
                     }
                     if(resultByLine[i] == "NODE_COORD_SECTION")
                         arrivedToData=true;
                 }
-                for(var i = 0; i < localDataOfThis.loaded_points.length; i++)
+                for(var i = 0; i < localDataOfThis.loadedDataset.loaded_points.length; i++)
                 {
-                    localDataOfThis.loaded_points[i][0]= (localDataOfThis.loaded_points[i][0]-minValWidth)/(maxValWidth-minValWidth);
-                    localDataOfThis.loaded_points[i][0]= localDataOfThis.loaded_points[i][0]*
+                    localDataOfThis.loadedDataset.loaded_points[i][0]= (localDataOfThis.loadedDataset.loaded_points[i][0]-minValWidth)/(maxValWidth-minValWidth);
+                    localDataOfThis.loadedDataset.loaded_points[i][0]= localDataOfThis.loadedDataset.loaded_points[i][0]*
                             (95/100*widthCanvas - 5/100*widthCanvas) + 5/100*widthCanvas;
-                    localDataOfThis.loaded_points[i][1]= (localDataOfThis.loaded_points[i][1]-minValHeight)/(maxValHeight-minValHeight);
-                    localDataOfThis.loaded_points[i][1] = localDataOfThis.loaded_points[i][1]*
+                    localDataOfThis.loadedDataset.loaded_points[i][1]= (localDataOfThis.loadedDataset.loaded_points[i][1]-minValHeight)/(maxValHeight-minValHeight);
+                    localDataOfThis.loadedDataset.loaded_points[i][1] = localDataOfThis.loadedDataset.loaded_points[i][1]*
                             (95/100*heightCanvas - 5/100*heightCanvas) + 5/100*heightCanvas;
                 }
             }
             reader.readAsText(file);
-            localDataOfThis.dataWasjustLoaded=true;    
+            localDataOfThis.dataWasjustLoaded=true;
         }
-    }
-
-    DataManager.prototype._getPossibleSets = function() {
-
     };
 
-    DataManager.prototype._importeSelectedSet = function() {
-       
-    };
-
-    DataManager.prototype._addDataToCanvas = function() {
-        this.ac._add_data(this.loaded_points);
+    DataManager.prototype._addSelectedDatasetToCanvas = function() {
+        this.acArtist._add_data(this.loadedDataset.loaded_points);
+        this.currentPointsComeFromDataset=true;
     };
 
     return DataManager;
@@ -1012,7 +1086,6 @@ $(document).ready(function(){
     var ac = new AntColony();
     var acArtist = new ACArtist(ac, antCanvas);
     var dataManager = new DataManager(acArtist);
-    dataManager._importeSelectedSet();
 
     $('#aco-params select').change(function() {
         acArtist.stop();
@@ -1049,12 +1122,12 @@ $(document).ready(function(){
     setParams();
 
     $('#start-search-btn').click(function() {
-        if (!ac.ready() && !dataManager.dataWasjustLoaded) {
+        /*if (!ac.ready() && !dataManager.dataWasjustLoaded) {
             loadPopup({msg:'Please add at least two destination nodes'});
-        }
+        }*/
         if(dataManager.dataWasjustLoaded)
         {
-            dataManager._addDataToCanvas();
+            dataManager._addSelectedDatasetToCanvas();
             dataManager.dataWasjustLoaded=false;
         }
 
@@ -1066,13 +1139,25 @@ $(document).ready(function(){
             $('#best-distance').html((ac.getGlobalBest().getTour().distance()).toFixed(2));
         });
     });
-    $('#clear-graph').click(acArtist.clearGraph);
+
+    $('#clear-graph').click(function() {
+        console.log("Clear");
+        acArtist.clearGraph();
+        dataManager.currentPointsComeFromDataset=false;
+        dataManager.loadedDataset.name="";
+        $('.aco-info').hide();
+        var datasetSelect = document.getElementById('dataset_selection');
+        datasetSelect.selectedIndex = "empty";
+    });
+
 });
 </script>
 <div class="fill pad">
 	<div style="border:1px solid #ccc" id="aco-canvas"></div>
     <input type="file" id="fileInput">
     <button id="save_personal_points">Save</button>
+    <select id="dataset_selection">
+    </select>
     <div class="hr vpad"></div>
     <div>
         <table>

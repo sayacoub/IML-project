@@ -1,7 +1,7 @@
 burma14,14,14-Staedte in Burma
 baysg29,29,29 Cities in Bavaria
-att48,48,48 capitals of the US
 dantzig42,42,42 cities (Dantzig)
+att48,48,48 capitals of the US
 berlin52,52,52 locations in Berlin
 eil76,76,76-city problem
 eil101,101,101-city problem 

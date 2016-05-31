@@ -88,8 +88,19 @@ var Canvas = (function () {
         this._canvas.moveTo(fromX, fromY);
         this._canvas.lineTo(toX, toY);
         this._canvas.stroke();
-    }
-    
+    };
+		Canvas.prototype.pixelOnMouseOver =	function pixelOnMouseOver(callback){
+  var canvas = this._canvas;
+  var w = this._canvasSize.width, h=this._canvasSize.height;
+  var data = this._canvas.getImageData(0,0,w,h).data;
+  Canvas.addEventListener('mousemove',function(e){
+    var idx = (e.offsetY*w + e.offsetX)*4;
+    var parts = Array.prototype.slice.call(data,idx,idx+4);
+    callback.apply(canvas,parts);
+  },false);
+};
+
+
     Canvas.prototype.drawCircle = function(x, y, params) {
         var size = 6;
         var color = '#000';
@@ -151,9 +162,13 @@ var Canvas = (function () {
         this._mousePos.x = x;
         this._mousePos.y = y;
     };
+	
+
 
     return Canvas;
 })();
+
+
 
 var ACArtist = (function() {
     function ACArtist(ac, canvas) {
@@ -265,7 +280,13 @@ var ACArtist = (function() {
                 edges[edgeIndex].pointB().x, edges[edgeIndex].pointB().y,
                 { 'alpha': alpha, 'color': '#06f', 'width': width });
         }
+		
+		
     };
+	
+
+
+
     
     ACArtist.prototype._drawBg = function() {
         var grd = this._canvas.getContext().createLinearGradient(0, 0, 0, this._canvas.getHeight());
@@ -1013,6 +1034,17 @@ $(document).ready(function(){
     var acArtist = new ACArtist(ac, antCanvas);
     var dataManager = new DataManager(acArtist);
     dataManager._importeSelectedSet();
+	
+	var wasOver;
+antCanvas.pixelOnMouseOver(function(r,g,b,a){
+  var isOver = a > 10; // arbitrary threshold
+  if (isOver != wasOver){
+    wasOver = isOver;
+	$('#position').html('0/' + "r:"+r+", g:"+g+", b:"+b+", a:"+a);
+  }
+  
+});
+    
 
     $('#aco-params select').change(function() {
         acArtist.stop();
@@ -1084,6 +1116,9 @@ $(document).ready(function(){
             </tr>
             <tr style="display:none;" class="aco-info">
                 <td>Best Distance: </td><td id="best-distance"></td>
+            </tr>
+			 <tr style="display:true;" class="position">
+                <td>Position Info: </td><td id="position"></td>
             </tr>
             <tr id="aco-buttons">
                 <td colspan="2"><button id="start-search-btn">Start</button> <button id="clear-graph">Clear</button></td>

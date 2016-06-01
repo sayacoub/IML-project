@@ -343,12 +343,12 @@ var ACArtist = (function() {
         var antXPos = fromCity.getX() + xOffset;
         var antYPos = fromCity.getY() + yOffset;
         
-        this._drawAnt(antXPos, antYPos);
+        //this._drawAnt(antXPos, antYPos);
     };
 
-    ACArtist.prototype._drawAnt = function(x, y) {
+    /*ACArtist.prototype._drawAnt = function(x, y) {
         this._canvas.drawRectangle(x-2, y-2, 4, 4, { 'alpha': 0.5 });
-    };
+    };*/
 
     ACArtist.prototype._animateAnts = function() {   
         var animationIndex = 2;
@@ -438,7 +438,10 @@ var DataManager = (function(){
         {
             var ant = acArtist._ac.getGlobalBest();
             if(!ant)
+            {
+                document.getElementById("user_information_output").innerHTML = "Nothing to save. Create or choose a dataset first, then press 'Start'.";
                 return;
+            }
             var tour = ant.getTour()._tour;
             var numberOfPoints = tour.length;
             var linejump = "\n";
@@ -451,18 +454,28 @@ var DataManager = (function(){
                     "COMMENT: Optimal solution\n" +
                     "DIMENSION: " + numberOfPoints + linejump +
                     "TOUR_SECTION\n";
-                var indexOfFirstPoint = tour.indexOf(localDataOfThis.loadedDataset.loaded_points[0]);
                 var j=0;
                 var cityFound=false;
-                console.log(localDataOfThis.loadedDataset.loaded_points[0][0], tour[0]._x )
+                while(j < numberOfPoints && !cityFound)
+                {
+                    if(localDataOfThis.loadedDataset.loaded_points[0][0]==tour[j]._x 
+                        && localDataOfThis.loadedDataset.loaded_points[0][1]==tour[j]._y)
+                    {
+                        cityFound=true;
+                        var indexOfFirstPoint = j;
+                    }
+                    j++;
+                }
+                j=0;
+                cityFound=false;
                 for(var i = 0; i < numberOfPoints; i++)
                 {
                     if(i+indexOfFirstPoint == numberOfPoints)
-                        indexOfFirstPoint==-i;
+                        indexOfFirstPoint=-i;
                     while(j < numberOfPoints && !cityFound)
                     {
-                        if(localDataOfThis.loadedDataset.loaded_points[j][0]==tour[i]._x 
-                            && localDataOfThis.loadedDataset.loaded_points[j][1]==tour[i]._y)
+                        if(localDataOfThis.loadedDataset.loaded_points[j][0]==tour[i+indexOfFirstPoint]._x 
+                            && localDataOfThis.loadedDataset.loaded_points[j][1]==tour[i+indexOfFirstPoint]._y)
                             cityFound=true;
                         j++;
                     }
@@ -487,10 +500,7 @@ var DataManager = (function(){
                 }
             }
             resultString+= "EOF";
-
-            
-            
-            
+            document.getElementById("user_information_output").innerHTML = "Dataset saved!";
             console.log(resultString);
         }
     };
@@ -541,6 +551,7 @@ var DataManager = (function(){
             }
             reader.readAsText(file);
             localDataOfThis.dataWasjustLoaded=true;
+            document.getElementById("user_information_output").innerHTML = "Dataset loaded. Press 'Start' to begin.";
         }
     };
 
@@ -1145,9 +1156,10 @@ antCanvas.pixelOnMouseOver(function(r,g,b,a){
     setParams();
 
     $('#start-search-btn').click(function() {
-        /*if (!ac.ready() && !dataManager.dataWasjustLoaded) {
+        document.getElementById("user_information_output").innerHTML = "Loading...";
+        if (!ac.ready() && !dataManager.dataWasjustLoaded) {
             loadPopup({msg:'Please add at least two destination nodes'});
-        }*/
+        }
         if(dataManager.dataWasjustLoaded)
         {
             dataManager._addSelectedDatasetToCanvas();
@@ -1161,9 +1173,11 @@ antCanvas.pixelOnMouseOver(function(r,g,b,a){
             $('#iteration-info').html(ac.currentIteration() + '/' + ac.maxIterations());
             $('#best-distance').html((ac.getGlobalBest().getTour().distance()).toFixed(2));
         });
+        document.getElementById("user_information_output").innerHTML = "Algorithm started.";
     });
 
     $('#clear-graph').click(function() {
+        document.getElementById("user_information_output").innerHTML = "Dataset cleared. Ready!";
         console.log("Clear");
         acArtist.clearGraph();
         dataManager.currentPointsComeFromDataset=false;
@@ -1177,6 +1191,9 @@ antCanvas.pixelOnMouseOver(function(r,g,b,a){
 </script>
 <div class="fill pad">
 	<div style="border:1px solid #ccc" id="aco-canvas"></div>
+    <br />
+    <div id="user_information_output">Ready!</div>
+    <br />
     <input type="file" id="fileInput">
     <button id="save_personal_points">Save</button>
     <select id="dataset_selection">

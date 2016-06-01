@@ -1097,18 +1097,11 @@ var Tour = (function () {
 
 
 
-
-
-
-
-
-
 $(document).ready(function(){
     var antCanvas = new Canvas('#aco-canvas', 700, 440);
     var ac = new AntColony();
     var acArtist = new ACArtist(ac, antCanvas);
     var dataManager = new DataManager(acArtist);
-    dataManager._importeSelectedSet();
 	
 	var wasOver;
 antCanvas.pixelOnMouseOver(function(r,g,b,a){
@@ -1186,7 +1179,6 @@ antCanvas.pixelOnMouseOver(function(r,g,b,a){
         var datasetSelect = document.getElementById('dataset_selection');
         datasetSelect.selectedIndex = "empty";
     });
-
 });
 </script>
 <div class="fill pad">

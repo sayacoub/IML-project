@@ -89,16 +89,27 @@ var Canvas = (function () {
         this._canvas.lineTo(toX, toY);
         this._canvas.stroke();
     };
-		Canvas.prototype.pixelOnMouseOver =	function pixelOnMouseOver(callback){
-  var canvas = this._canvas;
-  var w = this._canvasSize.width, h=this._canvasSize.height;
-  var data = this._canvas.getImageData(0,0,w,h).data;
-  Canvas.addEventListener('mousemove',function(e){
-    var idx = (e.offsetY*w + e.offsetX)*4;
-    var parts = Array.prototype.slice.call(data,idx,idx+4);
-    callback.apply(canvas,parts);
-  },false);
-};
+
+    Canvas.prototype.pixelOnMouseOver = function (){
+        var canvas = document.getElementById("aco-canvas");
+        function draw(e) {
+            var pos = getMousePos(canvas, e);
+            var posx = pos.x;
+            var posy = pos.y;
+            $('#position').html('0/' + "x:"+pos.x+", y:"+pos.y);
+        }
+        canvas.addEventListener('mousemove', draw, false);
+
+        function getMousePos(canvas, evt) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+    };
+
+    
 
 
     Canvas.prototype.drawCircle = function(x, y, params) {
@@ -1102,16 +1113,17 @@ $(document).ready(function(){
     var ac = new AntColony();
     var acArtist = new ACArtist(ac, antCanvas);
     var dataManager = new DataManager(acArtist);
-	
-	var wasOver;
-antCanvas.pixelOnMouseOver(function(r,g,b,a){
+    
+    var wasOver;
+    antCanvas.pixelOnMouseOver();
+/*antCanvas.pixelOnMouseOver(function(r,g,b,a){
   var isOver = a > 10; // arbitrary threshold
   if (isOver != wasOver){
     wasOver = isOver;
-	$('#position').html('0/' + "r:"+r+", g:"+g+", b:"+b+", a:"+a);
+    $('#position').html('0/' + "r:"+r+", g:"+g+", b:"+b+", a:"+a);
   }
   
-});
+});*/
     
 
     $('#aco-params select').change(function() {
@@ -1182,7 +1194,7 @@ antCanvas.pixelOnMouseOver(function(r,g,b,a){
 });
 </script>
 <div class="fill pad">
-	<div style="border:1px solid #ccc" id="aco-canvas"></div>
+    <div style="border:1px solid #ccc" id="aco-canvas"></div>
     <br />
     <div id="user_information_output">Ready!</div>
     <br />
@@ -1202,7 +1214,7 @@ antCanvas.pixelOnMouseOver(function(r,g,b,a){
             <tr style="display:none;" class="aco-info">
                 <td>Best Distance: </td><td id="best-distance"></td>
             </tr>
-			 <tr style="display:true;" class="position">
+             <tr style="display:true;" class="position">
                 <td>Position Info: </td><td id="position"></td>
             </tr>
             <tr id="aco-buttons">

@@ -1,1 +1,2 @@
-When loading a dataset, then clearing it, then reloading the same: FAIL. Because listener is on change
+Burma14 doesn't have a optimal tour
+Améliorer la relance du même algo (et la suppression optimal tour)

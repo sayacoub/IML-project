@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+        <script type="text/javascript" src="/dist/jquery.min.js"></script>
+        <script src="js/tmp_js.js"></script>
+        <title>iML Test</title>
+    </head>
+    <body>
+        <table width="100%" height="100%">
+            <col width="70%">
+            <col width="30%">
+            <tr>
+                <td>
+                    <div style="border:1px solid #ccc" id="aco_canvas"></div>
+                </td>
+                <td>
+                    <table width="100%" height="100%">
+                        <tr height="20%">
+                            <td valign="top">
+                                Insert welcome text and bacic explanations
+                            </td>
+                        </tr>
+                        <tr height="50%">
+                            <td valign="top">
+                                <hr>
+                                <div>Pre-selected datasets:</div>
+                                <select class="form-control" id="dataset_selection"></select>
+                                <br/>
+                                <br/>
+                                <button class="btn btn-default col-xs-6" id="start_search_btn">Start</button><button class="btn btn-default col-xs-6" id="clear_graph">Clear</button>
+                                <br/>
+                                <br/>
+                                <button class="btn btn-default col-xs-6" id="save_personal_points">Save</button><button class="btn btn-default col-xs-6" id="compare_with_optimal">Compare with optimal tour</button>
+                                <br/>
+                                <br/>
+                                <b>Debug Info</b>
+                                <br/>
+                                <u>Iteration: </u><div id="iteration_info"></div>
+                                <u>Best Distance: </u><div id="best_distance"></div>
+                                <u>Position Info: </u><div id="position"></div>
+                                <div class="clear"></div>
+                            </td>
+                        </tr>
+                        <tr height="30%">
+                            <td valign="top">
+                                <hr>
+                                <div><b>System message:</b></div>
+                                <div id="user_information_output">Ready!</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
+

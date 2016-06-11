@@ -1,11 +1,13 @@
 burma14,14,14-Staedte in Burma
+ulysses22,22,Odyssey of Ulysses
 bayg29,29,29 Cities in Bavaria
 dantzig42,42,42 cities (Dantzig)
 att48,48,48 capitals of the US
+eil51,51,51-city problem
 berlin52,52,52 locations in Berlin
+st70,70,70-city problem
+pr76,76,76-city problem
 eil76,76,76-city problem
-eil101,101,101-city problem 
-bier127,127,127 Biergaerten in Augsburg
-ch130,130,130 city problem
-ch150,150,150 city Problem
-kroA200,200,200-city problem A
+kroA100,100,100-city problem A
+kroC100,100,100-city problem C
+kroD100,100,100-city problem D

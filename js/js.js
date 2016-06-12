@@ -30,7 +30,26 @@ var Canvas = (function () {
         this._clickHook = null;
         this._mouseMoveHook = null;
         this._city_number=1;
+		this._posx;
+		this._posy;
     }
+	
+		//self begin
+	   Canvas.prototype.setPosX = function(posx) {
+        this._posx = posx;
+    };
+	
+		   Canvas.prototype.setPosY = function(posy) {
+        this._posy = posy;
+    };
+	
+		   Canvas.prototype.getPosX = function() {
+        return this._posx;
+    };
+	
+		   Canvas.prototype.getPosY = function() {
+        return this._posy;
+    };
     
     Canvas.prototype.getMouseX = function() { return this._mousePos.x };
     Canvas.prototype.getMouseY = function() { return this._mousePos.y };
@@ -92,28 +111,7 @@ var Canvas = (function () {
         this._canvas.moveTo(fromX, fromY);
         this._canvas.lineTo(toX, toY);
         this._canvas.stroke();
-    };
-
-    Canvas.prototype.pixelOnMouseOver = function (){
-        var canvas = document.getElementById("aco_canvas");
-        function draw(e) {
-            var pos = getMousePos(canvas, e);
-            var posx = pos.x;
-            var posy = pos.y;
-            $('#position').html('0/' + "x:"+pos.x+", y:"+pos.y);
-        }
-        canvas.addEventListener('mousemove', draw, false);
-
-        function getMousePos(canvas, evt) {
-            var rect = canvas.getBoundingClientRect();
-            return {
-                x: evt.clientX - rect.left,
-                y: evt.clientY - rect.top
-            };
-        }
-    };
-
-    
+    };    
 
 
     Canvas.prototype.drawCircle = function(x, y, params) {
@@ -183,6 +181,26 @@ var Canvas = (function () {
         this._mousePos.y = y;
     };
 
+	    Canvas.prototype.pixelOnMouseOver = function (){
+        var canvas = document.getElementById("aco_canvas");
+		var pointer = this;
+        function draw(e) {
+            var pos = getMousePos(canvas, e);
+		    pointer.setPosX(pos.x);
+			pointer.setPosY(pos.y);
+            $('#position').html('0/' + "x:"+pos.x+", y:"+pos.y);
+        }
+        canvas.addEventListener('mousemove', draw, false);
+
+        function getMousePos(canvas, evt) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+    };
+
     return Canvas;
 })();
 
@@ -197,6 +215,8 @@ var ACArtist = (function() {
         
         this._animationIterator = null;
         this._animationSteps = 10;
+		this._posx= 0;
+		this._posy=0;
         
         this._iterationHook = null;
         
@@ -209,6 +229,8 @@ var ACArtist = (function() {
     }
 
     ACArtist.prototype._click = function() {
+	   // if add, no add of points after first iteration possilble(without this click event on edge not possible)
+	   if (this._ac.currentIteration() == 0) {
         var cities = this._ac.getGraph().getCities();
         for (var cityIndex in cities) {
             var difference = 0;
@@ -226,17 +248,102 @@ var ACArtist = (function() {
         this._ac.reset();
 
         this._draw();
+		}
+		//self begin
+	    else
+		{
+		
+		    var canvas = document.getElementById("aco_canvas");
+			var edges = this._ac.getGraph().getEdges();
+			//this._canvas.pixelOnMouseOver();
+            var pointer = this;
+/*		    canvas.addEventListener('click', function(event) {
+					
+						var pos = getMousePos(canvas, event);
+						posx = pos.x;
+						posy = pos.y;
+						pointer.setPosX(pos.x);
+						pointer.setPosY(pos.y);
+						$('#position').html('0/' + "x:"+pos.x+", y:"+pos.y);
+
+
+				}, false);*/
+				
+						//alert(pos.x);
+						var posx = this._canvas.getPosX();
+						var posy = this._canvas.getPosY();
+						//alert(posy);
+						for (var edgeIndex in edges) {
+						
+						//alert(count);
+						//count++
+						//var cityA = edges[edgeIndex].getCityA();
+						//var cityB = edges[edgeIndex].getCityB();
+						
+						
+						
+						//alert(point_x);
+						//alert(edges[edgeIndex].pointB().x);
+						/*if(point_x != edges[edgeIndex].pointB().x)
+						{
+						  alert("drin");
+						}*/
+						
+						//alert(point_y);
+						
+						var point_y = edges[edgeIndex].pointA().y;
+						var point_x = edges[edgeIndex].pointA().x;
+						var distx = edges[edgeIndex].pointA().x - edges[edgeIndex].pointB().x; 
+						var disty = edges[edgeIndex].pointA().y - edges[edgeIndex].pointB().y;
+						//alert(distx);
+						//alert(disty);
+						if(distx != 0 && disty != 0)
+						 {
+						//pos.x = point_x + sigma_x*dist_x
+							var sigma_x = (posx - point_x)/distx;
+							var sigma_y = (posy - point_y)/disty;
+							alert(sigma_x);
+							alert(sigma_y);
+						
+							if(Math.abs(sigma_x, sigma_y) <= 0.2)
+							{
+							  alert('clicked edge');
+							  edges[edgeIndex].setPheromone(0);
+							}
+						
+						  }
+						
+					
+						
+						
+						}
+				
+				 /*function getMousePos(canvas, evt) {
+				var rect = canvas.getBoundingClientRect();
+				return {
+					x: evt.clientX - rect.left,
+					y: evt.clientY - rect.top
+				};
+			}*/
+		
+		
+		// ende self
+		}
     };
+	
+	
+
 
     ACArtist.prototype._add_data = function(data) { 
-        for (var i = 0; i < data.length; i++) {
+        
+		for (var i = 0; i < data.length; i++) {
             window.var_tmp=i+1;
             this._ac.getGraph().addCity(data[i][0], data[i][1]);
             this._ac.getGraph().createEdges();
             clearInterval(this._animationIterator);
             this._ac.reset();
             this._draw();
-        }    
+        }   
     };
     
     ACArtist.prototype._draw = function() {
@@ -303,7 +410,6 @@ var ACArtist = (function() {
         for (var edgeIndex in edges) {
             totalPheromone += edges[edgeIndex].getPheromone();
         }
-        
         for (var edgeIndex in edges) {
             var alpha = 0.2;
             if (this._ac.currentIteration() > 0) {
@@ -869,6 +975,10 @@ var Edge = (function () {
     Edge.prototype.getPheromone = function() { return this._pheromone; };
 
     Edge.prototype.getDistance = function() { return this._distance; };
+	
+	Edge.prototype.getCityA = function() {return this._cityA};
+	Edge.prototype.getCityB = function() {return this._cityB};
+	
 
     Edge.prototype.contains = function(city) {
         if (this._cityA.getX() == city.getX()) {

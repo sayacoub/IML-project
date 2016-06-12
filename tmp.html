@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
-        <link rel="stylesheet" type="text/css" href="css/style.css">
-        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-        <script type="text/javascript" src="dist/jquery.min.js"></script>
-        <script src="js/js.js"></script>
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+        <script type="text/javascript" src="/dist/jquery.min.js"></script>
+        <script src="js/tmp_js.js"></script>
         <title>iML Test</title>
     </head>
     <body>
@@ -19,17 +19,13 @@
                     <table width="100%" height="100%">
                         <tr height="20%">
                             <td valign="top">
-                                <p>
-                                    You have two options: <br/>
-                                    -Load a pre-selected dataset, press "Start" and try to find the optimal tour. You can save your tour for analyze by pressing "Save". And if you want to compare your result with the optimal tour, press "Compare". <br/>
-                                    -Create your own dataset, by cliking on the canvas to create points. Once you have enough, press "Start" and try to find the optimal tour. Once again, you can save your tour for analyze by pressing "Save". To clear the canvas, press "Clear".
-                                </p>
+                                Insert welcome text and bacic explanations
                             </td>
                         </tr>
                         <tr height="50%">
                             <td valign="top">
                                 <hr>
-                                <div><u>Pre-selected datasets:</u></div>
+                                <div>Pre-selected datasets:</div>
                                 <select class="form-control" id="dataset_selection"></select>
                                 <br/>
                                 <br/>
@@ -41,9 +37,9 @@
                                 <br/>
                                 <b>Debug Info</b>
                                 <br/>
-                                <u>Iteration: </u><div id="iteration_info"> </div>
-                                <u>Best Distance: </u><div id="best_distance"> </div>
-                                <u>Position Info: </u><div id="position"> </div>
+                                <u>Iteration: </u><div id="iteration_info"></div>
+                                <u>Best Distance: </u><div id="best_distance"></div>
+                                <u>Position Info: </u><div id="position"></div>
                                 <div class="clear"></div>
                             </td>
                         </tr>
@@ -60,3 +56,4 @@
         </table>
     </body>
 </html>
+

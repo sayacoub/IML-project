@@ -91,7 +91,7 @@ var Canvas = (function () {
     };
 
     Canvas.prototype.pixelOnMouseOver = function (){
-        var canvas = document.getElementById("aco-canvas");
+        var canvas = document.getElementById("aco_canvas");
         function draw(e) {
             var pos = getMousePos(canvas, e);
             var posx = pos.x;
@@ -249,32 +249,11 @@ var ACArtist = (function() {
             if (tourIndex < tour.size()-1) {
                 this._canvas.drawLine(tour.get(tourIndex).getX(), tour.get(tourIndex).getY(), 
                     tour.get(tourIndex+1).getX(), tour.get(tourIndex+1).getY(),
-                    { 'alpha': 0.9, 'color': '#0c6', 'width': 2 });
+                    { 'alpha': 0.9, 'color': '#0c6', 'width': 3 });
             } else {
                 this._canvas.drawLine(tour.get(tourIndex).getX(), tour.get(tourIndex).getY(), 
                     tour.get(0).getX(), tour.get(0).getY(),
-                    { 'alpha': 0.9, 'color': '#0c6', 'width': 2 });
-            }
-        }
-    };
-
-    ACArtist.prototype._drawOptimalTour = function(tour) {
-        /*this._canvas.clear();
-        this._drawBg();
-        this._drawEdges();
-        this._drawNodes();*/
-        if (tour == null) {
-            return;
-        }
-        for (var tourIndex = 0; tourIndex < tour.size(); tourIndex++) {
-            if (tourIndex < tour.size()-1) {
-                this._canvas.drawLine(tour.get(tourIndex).getX(), tour.get(tourIndex).getY(), 
-                    tour.get(tourIndex+1).getX(), tour.get(tourIndex+1).getY(),
-                    { 'alpha': 0.9, 'color': '#f00', 'width': 1 });
-            } else {
-                this._canvas.drawLine(tour.get(tourIndex).getX(), tour.get(tourIndex).getY(), 
-                    tour.get(0).getX(), tour.get(0).getY(),
-                    { 'alpha': 0.9, 'color': '#f00', 'width': 1 });
+                    { 'alpha': 0.9, 'color': '#0c6', 'width': 3 });
             }
         }
     };
@@ -424,14 +403,12 @@ var DataManager = (function(){
         this.loadedDataset = {};
         this.loadedDataset.name="";
         this.loadedDataset.loaded_points=[];
-        this.loadedDataset.optimal_tour=null;
         this.dataWasjustLoaded= false;
         this.currentPointsComeFromDataset=false;
         this.acArtist=acArtist;
         this._importAvailableDatasetList();
         this._saveCustomPointsListener(acArtist);
         this._importSelectedDatasetListener();
-        this._compareCurrentTourWithOptimalListener(acArtist);
     }
 
 
@@ -441,9 +418,7 @@ var DataManager = (function(){
         var client = new XMLHttpRequest();
         client.open('GET', '/dataset/used_algorithms.txt');
         client.onreadystatechange = function() {
-            if(client.status != 200)
-                document.getElementById("user_information_output").innerHTML = "An unexpected error happened during the loading of the dataset. Please try again, or contact the administrator";
-            if (client.readyState == 4  && client.status == 200)
+            if (client.readyState == 4)
             {
                 choiceDataset=client.responseText;
                 var resultByLine= choiceDataset.split('\n');
@@ -537,27 +512,25 @@ var DataManager = (function(){
             }
             resultString+= "EOF";
             
-            var client = new XMLHttpRequest();
+            var http = new XMLHttpRequest();
             var url = "php/save_dataset.php";
             var params = "dataset="+resultString + "&nb_points="+ numberOfPoints;
             if(localDataOfThis.loadedDataset.name==[])
                 params +="&algo_name=custom";
             else
                 params +="&algo_name="+localDataOfThis.loadedDataset.name;
-            client.open("POST", url, true);
+            http.open("POST", url, true);
             //Send the proper header information along with the request
-            client.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
-            client.onreadystatechange = function() {
-                if(client.status != 200)
-                    document.getElementById("user_information_output").innerHTML = "An unexpected error happened during the loading of the dataset. Please try again, or contact the administrator";
-                if(client.readyState == 4 && client.status == 200) {
-                    console.log(client.responseText);
+            http.onreadystatechange = function() {
+                if(http.readyState == 4 && http.status == 200) {
+                    console.log(http.responseText);
                     document.getElementById("user_information_output").innerHTML = "Dataset saved!";
                     //console.log(resultString);
                 }
             }
-            client.send(params);
+            http.send(params);
         }
     };
 
@@ -567,17 +540,14 @@ var DataManager = (function(){
 
         var localDataOfThis = this;
         function loadDataSet(e) {
-            document.getElementById("user_information_output").innerHTML = "Loading...";
             console.log(fileSelect.value)
+            
             localDataOfThis.loadedDataset.loaded_points= [];
-            localDataOfThis.acArtist.clearGraph();
             var client = new XMLHttpRequest();
             var stringFile = '/dataset/' + fileSelect.value + '.tsp';
             client.open('GET', stringFile);
             client.onreadystatechange = function() {
-                if(client.status != 200)
-                    document.getElementById("user_information_output").innerHTML = "An unexpected error happened during the loading of the dataset. Please try again, or contact the administrator";
-                if (client.readyState == 4  && client.status == 200)
+                if (client.readyState == 4)
                 {
                     var resultByLine= client.responseText.split('\n');
                     localDataOfThis.loadedDataset.name=resultByLine[0].split(/\ +/)[1];
@@ -614,7 +584,6 @@ var DataManager = (function(){
                     }
                     localDataOfThis.dataWasjustLoaded=true;
                     document.getElementById("user_information_output").innerHTML = "Dataset loaded. Press 'Start' to begin.";
-                    localDataOfThis._addSelectedDatasetToCanvas();
                 }
             }
             client.send();
@@ -624,84 +593,6 @@ var DataManager = (function(){
     DataManager.prototype._addSelectedDatasetToCanvas = function() {
         this.acArtist._add_data(this.loadedDataset.loaded_points);
         this.currentPointsComeFromDataset=true;
-    };
-
-    DataManager.prototype._compareCurrentTourWithOptimalListener = function(acArtist) {
-        var saveCustomPoints = document.getElementById('compare_with_optimal');
-        saveCustomPoints.addEventListener('click', saveCustomPointsFunction);
-        var localDataOfThis = this;
-        function saveCustomPointsFunction(e) 
-        {
-            var temp_tour=[];
-            var ant = acArtist._ac.getGlobalBest();
-            if(!ant)
-            {
-                document.getElementById("user_information_output").innerHTML = "Nothing to save. Create or choose a dataset first, then press 'Start'.";
-                return;
-            }
-            var tour = ant.getTour();
-            var numberOfPoints = tour._tour.length;
-            if(localDataOfThis.loadedDataset.loaded_points.length != numberOfPoints)
-            {
-                document.getElementById("user_information_output").innerHTML = "You've added some points, and we don't have an optimal tour for this dataset. Please Clear and load a new dataset without adding points.";
-                return;
-            }
-            if(localDataOfThis.loadedDataset.optimal_tour == null)
-            {
-                var client = new XMLHttpRequest();
-                client.open('GET', "/dataset/"+localDataOfThis.loadedDataset.name+".opt.tour");
-                client.onreadystatechange = function() {
-                    if(client.status != 200)
-                        document.getElementById("user_information_output").innerHTML = "An unexpected error happened during the loading of the dataset. Please try again, or contact the administrator";
-                    if(client.readyState == 4  && client.status == 200)
-                    {
-                        var arrivedToData = false;
-                        var resultByLine= client.responseText.split('\n');
-                        for (var i = 0; i < resultByLine.length; i++) {
-                            if(resultByLine[i] == "-1")
-                                arrivedToData=false;
-                            if(arrivedToData)
-                                temp_tour.push(resultByLine[i]);
-                            if(resultByLine[i] == "TOUR_SECTION")
-                                arrivedToData=true;
-                        }
-
-                        localDataOfThis.loadedDataset.optimal_tour = new Tour(localDataOfThis.acArtist._ac.getGraph);
-                        var temp_point, temp_city;
-                        for(var i=0; i < temp_tour.length; i++)
-                        {
-                            temp_point= localDataOfThis.loadedDataset.loaded_points[temp_tour[i]-1];
-                            temp_city=tour.containsWithValue(parseInt(temp_point[0]), parseInt(temp_point[1]));
-                            if(temp_city != null)
-                            {
-                                localDataOfThis.loadedDataset.optimal_tour.addCity(temp_city);
-                            }
-                        }
-                        console.log(localDataOfThis.loadedDataset.optimal_tour)
-                        compare()
-                    }
-                }
-                client.send();
-            }
-            else
-            {
-                compare()
-            }
-
-            function compare() {
-                acArtist._drawOptimalTour(localDataOfThis.loadedDataset.optimal_tour);
-                var i=0, isEqual=true;
-                while(i< localDataOfThis.loadedDataset.optimal_tour._tour.length && isEqual)
-                {
-                    isEqual=localDataOfThis.loadedDataset.optimal_tour._tour[i]==tour._tour[i];
-                    i++;
-                }
-                if(isEqual)
-                    document.getElementById("user_information_output").innerHTML = "Congratulations, you managed to find the optimal tour for this dataset!";
-                else
-                    document.getElementById("user_information_output").innerHTML = "Your tour is not yet optimal. Try again!";
-            }
-        }
     };
 
     return DataManager;
@@ -1198,16 +1089,6 @@ var Tour = (function () {
         return false;
     };
 
-    Tour.prototype.containsWithValue = function(x, y) {
-        for (var tourIndex in this._tour) {
-            if (parseInt(this._tour[tourIndex]._x)==x && parseInt(this._tour[tourIndex]._y)==y) {
-                return this._tour[tourIndex];
-            }
-        }
-
-        return null;
-    };
-
     Tour.prototype.addCity = function(city) {
         this._distance = null;
         this._tour.push(city);
@@ -1252,7 +1133,8 @@ var Tour = (function () {
 
 
 $(document).ready(function(){
-    var antCanvas = new Canvas('#aco-canvas', 700, 440);
+    var getDimensionsOfTd = document.getElementsByTagName('td')[0];
+    var antCanvas = new Canvas('#aco_canvas', getDimensionsOfTd.offsetWidth, getDimensionsOfTd.offsetHeight);
     var ac = new AntColony();
     var acArtist = new ACArtist(ac, antCanvas);
     var dataManager = new DataManager(acArtist);
@@ -1304,20 +1186,22 @@ $(document).ready(function(){
     setParams();
 
     $('#start-search-btn').click(function() {
+        document.getElementById("user_information_output").innerHTML = "Loading...";
         if (!ac.ready() && !dataManager.dataWasjustLoaded) {
             loadPopup({msg:'Please add at least two destination nodes'});
         }
         if(dataManager.dataWasjustLoaded)
         {
+            dataManager._addSelectedDatasetToCanvas();
             dataManager.dataWasjustLoaded=false;
         }
 
-        $('.aco-info').show();
-        $('#iteration-info').html('0/' + ac.maxIterations());
-        $('#best-distance').html('-');
+        $('.aco_info').show();
+        $('#iteration_info').html('0/' + ac.maxIterations());
+        $('#best_distance').html('-');
         acArtist.runAC(function() {
-            $('#iteration-info').html(ac.currentIteration() + '/' + ac.maxIterations());
-            $('#best-distance').html((ac.getGlobalBest().getTour().distance()).toFixed(2));
+            $('#iteration_info').html(ac.currentIteration() + '/' + ac.maxIterations());
+            $('#best_distance').html((ac.getGlobalBest().getTour().distance()).toFixed(2));
         });
         document.getElementById("user_information_output").innerHTML = "Algorithm started.";
     });
@@ -1328,31 +1212,76 @@ $(document).ready(function(){
         acArtist.clearGraph();
         dataManager.currentPointsComeFromDataset=false;
         dataManager.loadedDataset.name="";
-        dataManager.loadedDataset.optimal_tour=null;
-        $('.aco-info').hide();
+        $('.aco_info').hide();
         var datasetSelect = document.getElementById('dataset_selection');
         datasetSelect.selectedIndex = "empty";
     });
 });
 </script>
+<table width="100%" height="100%">
+    <col width="70%">
+    <col width="30%">
+    <tr>
+        <td>
+            <div style="border:1px solid #ccc" id="aco_canvas"></div>
+        </td>
+        <td>
+            <table width="100%" height="100%">
+                <tr height="20%">
+                    <td valign="top">
+                        Insert welcome text and bacic explanations
+                    </td>
+                </tr>
+                <tr height="50%">
+                    <td valign="top">
+                        <hr>
+                        <select id="dataset_selection"></select>
+                        <br/>
+                        <button id="start_search_btn">Start</button><button id="clear_graph">Clear</button>
+                        <br/>
+                        <button id="save_personal_points">Save</button><button id="compare_with_optimal">Compare with optimal tour</button>
+                        <br/>
+                        <b>Debug Info</b>
+                        <br/>
+                        <u>Iteration: </u><div id="iteration_info"></div>
+                        <br/>
+                        <u>Best Distance: </u><div id="best_distance"></div>
+                        <br/>
+                        <u>Position Info: </u><div id="position"></div>
+                        <div class="clear"></div>
+                    </td>
+                </tr>
+                <tr height="30%">
+                    <td valign="top">
+                        <hr>
+                        <div><b>System message:</b></div>
+                        <div id="user_information_output">Ready!</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<!--
 <div class="fill pad">
-    <div style="border:1px solid #ccc" id="aco-canvas"></div>
+    <div style="border:1px solid #ccc" id="aco_canvas"></div>
     <br />
     <div id="user_information_output">Ready!</div>
     <br />
     <select id="dataset_selection"></select>
     <br />
+    <button id="save_personal_points">Save</button>
     <div class="hr vpad"></div>
     <div>
         <table>
             <tr>
                 <td colspan="2"><b>Debug Info</b></td>
             </tr>
-            <tr style="display:none;" class="aco-info">
-                <td>Interation: </td><td id="iteration-info"></td>
+            <tr style="display:none;" class="aco_info">
+                <td>Interation: </td><td id="iteration_info"></td>
             </tr>
-            <tr style="display:none;" class="aco-info">
-                <td>Best Distance: </td><td id="best-distance"></td>
+            <tr style="display:none;" class="aco_info">
+                <td>Best Distance: </td><td id="best_distance"></td>
             </tr>
              <tr style="display:true;" class="position">
                 <td>Position Info: </td><td id="position"></td>
@@ -1362,8 +1291,7 @@ $(document).ready(function(){
             </tr>
         </table>
         <br />
-        <button id="save_personal_points">Save</button>
-        <button id="compare_with_optimal">Compare with optimal tour</button>
     <div class="clear"></div>
     </div>
 </div>
+-->

@@ -307,7 +307,59 @@ var ACArtist = (function() {
 						}*/
 						
 						//alert(point_y);
-						
+            
+            var ctx = this._canvas.getContext('2d');
+            
+            var tolerance = 8;
+            
+            var A_x = edges[edgeIndex].pointA().x;
+            var A_y = edges[edgeIndex].pointA().y;
+            var B_x = edges[edgeIndex].pointB().x;
+            var B_y = edges[edgeIndex].pointB().y;
+            
+            if((A_x != B_x) && (A_y != B_y))
+            {
+                var k_1 = (A_y - B_y)/(A_x - B_x);
+                var d_1 = A_y - k_1 * A_x;
+                var d_2 = posy + posx/(k_1);
+                var nearest_x = (d_2 - d_1)/(k_1 + (1/k_1));
+                var nearest_y = k_1 * nearest_x + d_1;
+                var distance = Math.sqrt(Math.pow(posx-nearest_x,2) + Math.pow(posy-nearest_y,2));
+				
+                
+                if((distance <= tolerance) && ((((posx < A_x) && (posx > B_x)) || ((posx < B_x) && (posx > A_x))) && (((posy < A_y) && (posy > B_y)) || ((posy < B_y) && (posy > A_y)))))
+                {
+                    alert('Edge [' + edgeIndex + '] clicked');
+                    /*
+                    ctx.beginPath();
+                    ctx.lineWidth="5";
+                    ctx.strokeStyle="green";
+                    ctx.moveTo(A_x,A_y);
+                    ctx.lineTo(B_x,B_y);
+                    ctx.stroke();
+                    */
+                }
+            }
+
+            else if(A_x == B_x)
+            {
+                if((Math.abs(posx - A_x) <= tolerance) && (((posy < A_y) && (posy > B_y)) || ((posy < B_y) && (posy > A_y))))
+                {
+                    alert('Edge [' + edgeIndex + '] clicked');
+                }
+            }
+            else if(A_y == B_y)
+            {
+                if((Math.abs(posy - A_y) <= tolerance) && (((posx < A_x) && (posx > B_x)) || ((posx < B_x) && (posx > A_x))))
+                {
+                    alert('Edge [' + edgeIndex + '] clicked');
+                }
+            }
+            
+            
+            
+            
+						/*
 						var point_y = edges[edgeIndex].pointA().y;
 						var point_x = edges[edgeIndex].pointA().x;
 						var distx = edges[edgeIndex].pointA().x - edges[edgeIndex].pointB().x; 
@@ -319,8 +371,8 @@ var ACArtist = (function() {
 						//pos.x = point_x + sigma_x*dist_x
 							var sigma_x = (posx - point_x)/distx;
 							var sigma_y = (posy - point_y)/disty;
-							alert(sigma_x);
-							alert(sigma_y);
+							// alert(sigma_x);
+							// alert(sigma_y);
 						
 							if(Math.abs(sigma_x, sigma_y) <= 0.2)
 							{
@@ -330,7 +382,7 @@ var ACArtist = (function() {
 						
 						  }
 						
-					
+					*/
 						
 						
 						}

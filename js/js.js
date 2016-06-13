@@ -50,6 +50,7 @@ var Canvas = (function () {
 		   Canvas.prototype.getPosY = function() {
         return this._posy;
     };
+	//self end
     
     Canvas.prototype.getMouseX = function() { return this._mousePos.x };
     Canvas.prototype.getMouseY = function() { return this._mousePos.y };
@@ -111,7 +112,16 @@ var Canvas = (function () {
         this._canvas.moveTo(fromX, fromY);
         this._canvas.lineTo(toX, toY);
         this._canvas.stroke();
-    };    
+    };
+	
+	
+	
+	
+
+
+ 
+
+    
 
 
     Canvas.prototype.drawCircle = function(x, y, params) {
@@ -168,6 +178,7 @@ var Canvas = (function () {
         this._canvas.fillRect(pointA, pointB, pointC, pointD);
     }
 
+	
     Canvas.prototype._updateMouseXY = function(mouseEvt) {
         this._canvasPos = this._canvasEle.getBoundingClientRect();
         var mouseX = mouseEvt.clientX - this._canvasPos.left;
@@ -180,7 +191,7 @@ var Canvas = (function () {
         this._mousePos.x = x;
         this._mousePos.y = y;
     };
-
+	 // self begin
 	    Canvas.prototype.pixelOnMouseOver = function (){
         var canvas = document.getElementById("aco_canvas");
 		var pointer = this;
@@ -200,6 +211,7 @@ var Canvas = (function () {
             };
         }
     };
+	//self end
 
     return Canvas;
 })();
@@ -215,8 +227,11 @@ var ACArtist = (function() {
         
         this._animationIterator = null;
         this._animationSteps = 10;
+		//self
 		this._posx= 0;
 		this._posy=0;
+		this_edgeIndex = -1;
+		//end self
         
         this._iterationHook = null;
         
@@ -227,6 +242,17 @@ var ACArtist = (function() {
             }
         }
     }
+	// self
+	ACArtist.prototype.setEdgeIndex = function(edgeIndex) {
+	    this._edgeIndex = edgeIndex;
+	};
+	
+    ACArtist.prototype.getEdgeIndex = function(edgeIndex) {
+	    return this._edgeIndex;
+	};
+    // end self
+
+	
 
     ACArtist.prototype._click = function() {
 	   // if add, no add of points after first iteration possilble(without this click event on edge not possible)
@@ -312,7 +338,9 @@ var ACArtist = (function() {
                 
                 if((distance <= tolerance) && ((((posx < A_x) && (posx > B_x)) || ((posx < B_x) && (posx > A_x))) && (((posy < A_y) && (posy > B_y)) || ((posy < B_y) && (posy > A_y)))))
                 {
-                    alert('Edge [' + edgeIndex + '] clicked');
+                    //alert('Edge [' + edgeIndex + '] clicked');
+					$('#edge_selected').html('Edge [' + edgeIndex + '] selcted');
+					this.setEdgeIndex(edgeIndex);
                     /*
                     ctx.beginPath();
                     ctx.lineWidth="5";
@@ -328,14 +356,18 @@ var ACArtist = (function() {
             {
                 if((Math.abs(posx - A_x) <= tolerance) && (((posy < A_y) && (posy > B_y)) || ((posy < B_y) && (posy > A_y))))
                 {
-                    alert('Edge [' + edgeIndex + '] clicked');
+                    //alert('Edge [' + edgeIndex + '] clicked');
+					$('#edge_selected').html('Edge [' + edgeIndex + '] selcted');
+					this.setEdgeIndex(edgeIndex);
+					
                 }
             }
             else if(A_y == B_y)
             {
                 if((Math.abs(posy - A_y) <= tolerance) && (((posx < A_x) && (posx > B_x)) || ((posx < B_x) && (posx > A_x))))
                 {
-                    alert('Edge [' + edgeIndex + '] clicked');
+                    $('#edge_selected').html('Edge [' + edgeIndex + '] selcted');
+					this.setEdgeIndex(edgeIndex);
                 }
             }
             
@@ -396,6 +428,7 @@ var ACArtist = (function() {
             this._ac.reset();
             this._draw();
         }   
+      	
     };
     
     ACArtist.prototype._draw = function() {
@@ -462,6 +495,7 @@ var ACArtist = (function() {
         for (var edgeIndex in edges) {
             totalPheromone += edges[edgeIndex].getPheromone();
         }
+  
         for (var edgeIndex in edges) {
             var alpha = 0.2;
             if (this._ac.currentIteration() > 0) {
@@ -596,7 +630,7 @@ var DataManager = (function(){
         this.dataWasjustLoaded= false;
         this.currentPointsComeFromDataset=false;
         this.acArtist=acArtist;
-        this._importAvailableDatasetList();
+        //this._importAvailableDatasetList();
         this._saveCustomPointsListener(acArtist);
         this._importSelectedDatasetListener();
         this._compareCurrentTourWithOptimalListener(acArtist);
@@ -724,6 +758,7 @@ var DataManager = (function(){
         var localDataOfThis = this;
         function saveCustomPointsFunction(e) 
         {
+		alert("I am an alert box!");
             var ant = acArtist._ac.getGlobalBest();
             if(!ant)
             {
@@ -1009,6 +1044,7 @@ var Edge = (function () {
         this._cityB = cityB;
         this._initPheromone = 1;
         this._pheromone = this._initPheromone;
+		
 
         // Calculate edge distance
         var deltaXSq = Math.pow((cityA.getX() - cityB.getX()), 2);
@@ -1019,6 +1055,9 @@ var Edge = (function () {
     Edge.prototype.pointA = function() {
         return { 'x': this._cityA.getX(), 'y': this._cityA.getY() };
     }
+	
+	
+	
     
     Edge.prototype.pointB = function() {
         return { 'x': this._cityB.getX(), 'y': this._cityB.getY() };
@@ -1028,9 +1067,12 @@ var Edge = (function () {
 
     Edge.prototype.getDistance = function() { return this._distance; };
 	
+	//self implement begin
+	
 	Edge.prototype.getCityA = function() {return this._cityA};
 	Edge.prototype.getCityB = function() {return this._cityB};
 	
+	// self end
 
     Edge.prototype.contains = function(city) {
         if (this._cityA.getX() == city.getX()) {
@@ -1049,6 +1091,8 @@ var Edge = (function () {
     Edge.prototype.setPheromone = function(pheromone) {
         this._pheromone = pheromone;
     };
+	
+
     
     Edge.prototype.resetPheromone = function() {
         this._pheromone = this._initPheromone;
@@ -1216,6 +1260,8 @@ var AntColony = (function () {
             // Set maxmin
             this._maxPheromone = this._q / best.getTour().distance();
             this._minPheromone = this._maxPheromone * this._minScalingFactor;
+			
+	
 
             best.addPheromone();
         } else {
@@ -1239,6 +1285,7 @@ var AntColony = (function () {
             }
         }
     };
+	
     
     AntColony.prototype.getIterationBest = function() {
         if (this._colony[0].getTour() == null) {
@@ -1464,9 +1511,11 @@ $(document).ready(function(){
     var ac = new AntColony();
     var acArtist = new ACArtist(ac, antCanvas);
     var dataManager = new DataManager(acArtist);
+	document.getElementById("pheromon_value").innerHTML = document.getElementById("myRange").value/100;   
+	
     
     var wasOver;
-    antCanvas.pixelOnMouseOver();
+   antCanvas.pixelOnMouseOver();
     /*antCanvas.pixelOnMouseOver(function(r,g,b,a){
       var isOver = a > 10; // arbitrary threshold
       if (isOver != wasOver){
@@ -1476,11 +1525,11 @@ $(document).ready(function(){
       
     });*/
     
+    $('#myRange').change(function() {
+	   // Pheromones between 0 and 1 ?!
+	   document.getElementById("pheromon_value").innerHTML = document.getElementById("myRange").value/100;
+	});
 
-    $('#aco-params select').change(function() {
-        acArtist.stop();
-        setParams();
-    });
 
     $('#aco-mode').change(function() {
         $('#elitist-weight-input').hide();
@@ -1510,11 +1559,25 @@ $(document).ready(function(){
     }
 
     setParams();
+	
+	$('#set_phero').click(function() {
+	  var edgeIndex = -1;
+	
+	  edgeIndex = acArtist.getEdgeIndex();
+	  var edges = acArtist._ac.getGraph().getEdges();
+	  if(edgeIndex != -1)
+	  {
+	    // Pheromones between 0 and 1 ?!
+        edges[edgeIndex].setPheromone(document.getElementById("myRange").value/100);
+	  }
+	
+	});
 
     $('#start_search_btn').click(function() {
         if (!ac.ready() && !dataManager.dataWasjustLoaded) {
             document.getElementById("user_information_output").innerHTML = "Please add at least two destination nodes or a pre-selected dataset";
         }
+
         if(dataManager.dataWasjustLoaded)
         {
             dataManager.dataWasjustLoaded=false;

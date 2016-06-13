@@ -29,27 +29,7 @@ var Canvas = (function () {
         
         this._clickHook = null;
         this._mouseMoveHook = null;
-        this._city_number=1;
-		this._posx;
-		this._posy;
     }
-	
-		//self begin
-	   Canvas.prototype.setPosX = function(posx) {
-        this._posx = posx;
-    };
-	
-		   Canvas.prototype.setPosY = function(posy) {
-        this._posy = posy;
-    };
-	
-		   Canvas.prototype.getPosX = function() {
-        return this._posx;
-    };
-	
-		   Canvas.prototype.getPosY = function() {
-        return this._posy;
-    };
     
     Canvas.prototype.getMouseX = function() { return this._mousePos.x };
     Canvas.prototype.getMouseY = function() { return this._mousePos.y };
@@ -83,7 +63,6 @@ var Canvas = (function () {
 
     Canvas.prototype.clear = function() {
         this._canvas.clearRect(0, 0, this._canvasSize.width, this._canvasSize.height);
-        this._city_number=1;
     };
     
     Canvas.prototype.drawLine = function(fromX, fromY, toX, toY, params) {
@@ -111,7 +90,28 @@ var Canvas = (function () {
         this._canvas.moveTo(fromX, fromY);
         this._canvas.lineTo(toX, toY);
         this._canvas.stroke();
-    };    
+    };
+
+    Canvas.prototype.pixelOnMouseOver = function (){
+        var canvas = document.getElementById("aco_canvas");
+        function draw(e) {
+            var pos = getMousePos(canvas, e);
+            var posx = pos.x;
+            var posy = pos.y;
+            $('#position').html('0/' + "x:"+pos.x+", y:"+pos.y);
+        }
+        canvas.addEventListener('mousemove', draw, false);
+
+        function getMousePos(canvas, evt) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+    };
+
+    
 
 
     Canvas.prototype.drawCircle = function(x, y, params) {
@@ -141,11 +141,6 @@ var Canvas = (function () {
         this._canvas.beginPath();
         this._canvas.arc(x, y, size, 0, 2 * Math.PI);
         this._canvas.fill();
-        this._canvas.font = "15px Arial";
-        //var str=x.toFixed(2).toString()+"-"+y.toFixed(2).toString();
-        //this._canvas.fillText(str,x+10,y+10);
-        this._canvas.fillText(this._city_number,x+10,y+10);
-        this._city_number++;
     };
     
     Canvas.prototype.drawRectangle = function(pointA, pointB, pointC, pointD, params) {
@@ -181,26 +176,6 @@ var Canvas = (function () {
         this._mousePos.y = y;
     };
 
-	    Canvas.prototype.pixelOnMouseOver = function (){
-        var canvas = document.getElementById("aco_canvas");
-		var pointer = this;
-        function draw(e) {
-            var pos = getMousePos(canvas, e);
-		    pointer.setPosX(pos.x);
-			pointer.setPosY(pos.y);
-            $('#position').html('0/' + "x:"+pos.x+", y:"+pos.y);
-        }
-        canvas.addEventListener('mousemove', draw, false);
-
-        function getMousePos(canvas, evt) {
-            var rect = canvas.getBoundingClientRect();
-            return {
-                x: evt.clientX - rect.left,
-                y: evt.clientY - rect.top
-            };
-        }
-    };
-
     return Canvas;
 })();
 
@@ -215,8 +190,6 @@ var ACArtist = (function() {
         
         this._animationIterator = null;
         this._animationSteps = 10;
-		this._posx= 0;
-		this._posy=0;
         
         this._iterationHook = null;
         
@@ -229,8 +202,6 @@ var ACArtist = (function() {
     }
 
     ACArtist.prototype._click = function() {
-	   // if add, no add of points after first iteration possilble(without this click event on edge not possible)
-	   if (this._ac.currentIteration() == 0) {
         var cities = this._ac.getGraph().getCities();
         for (var cityIndex in cities) {
             var difference = 0;
@@ -248,154 +219,16 @@ var ACArtist = (function() {
         this._ac.reset();
 
         this._draw();
-		}
-		//self begin
-	    else
-		{
-		
-		    var canvas = document.getElementById("aco_canvas");
-			var edges = this._ac.getGraph().getEdges();
-			//this._canvas.pixelOnMouseOver();
-            var pointer = this;
-/*		    canvas.addEventListener('click', function(event) {
-					
-						var pos = getMousePos(canvas, event);
-						posx = pos.x;
-						posy = pos.y;
-						pointer.setPosX(pos.x);
-						pointer.setPosY(pos.y);
-						$('#position').html('0/' + "x:"+pos.x+", y:"+pos.y);
-
-
-				}, false);*/
-				
-						//alert(pos.x);
-						var posx = this._canvas.getPosX();
-						var posy = this._canvas.getPosY();
-						//alert(posy);
-						for (var edgeIndex in edges) {
-						
-						//alert(count);
-						//count++
-						//var cityA = edges[edgeIndex].getCityA();
-						//var cityB = edges[edgeIndex].getCityB();
-						
-						
-						
-						//alert(point_x);
-						//alert(edges[edgeIndex].pointB().x);
-						/*if(point_x != edges[edgeIndex].pointB().x)
-						{
-						  alert("drin");
-						}*/
-						
-						//alert(point_y);
-            
-            var ctx = this._canvas.getContext('2d');
-            
-            var tolerance = 8;
-            
-            var A_x = edges[edgeIndex].pointA().x;
-            var A_y = edges[edgeIndex].pointA().y;
-            var B_x = edges[edgeIndex].pointB().x;
-            var B_y = edges[edgeIndex].pointB().y;
-            
-            if((A_x != B_x) && (A_y != B_y))
-            {
-                var k_1 = (A_y - B_y)/(A_x - B_x);
-                var d_1 = A_y - k_1 * A_x;
-                var d_2 = posy + posx/(k_1);
-                var nearest_x = (d_2 - d_1)/(k_1 + (1/k_1));
-                var nearest_y = k_1 * nearest_x + d_1;
-                var distance = Math.sqrt(Math.pow(posx-nearest_x,2) + Math.pow(posy-nearest_y,2));
-				
-                
-                if((distance <= tolerance) && ((((posx < A_x) && (posx > B_x)) || ((posx < B_x) && (posx > A_x))) && (((posy < A_y) && (posy > B_y)) || ((posy < B_y) && (posy > A_y)))))
-                {
-                    alert('Edge [' + edgeIndex + '] clicked');
-                    /*
-                    ctx.beginPath();
-                    ctx.lineWidth="5";
-                    ctx.strokeStyle="green";
-                    ctx.moveTo(A_x,A_y);
-                    ctx.lineTo(B_x,B_y);
-                    ctx.stroke();
-                    */
-                }
-            }
-
-            else if(A_x == B_x)
-            {
-                if((Math.abs(posx - A_x) <= tolerance) && (((posy < A_y) && (posy > B_y)) || ((posy < B_y) && (posy > A_y))))
-                {
-                    alert('Edge [' + edgeIndex + '] clicked');
-                }
-            }
-            else if(A_y == B_y)
-            {
-                if((Math.abs(posy - A_y) <= tolerance) && (((posx < A_x) && (posx > B_x)) || ((posx < B_x) && (posx > A_x))))
-                {
-                    alert('Edge [' + edgeIndex + '] clicked');
-                }
-            }
-            
-            
-            
-            
-						/*
-						var point_y = edges[edgeIndex].pointA().y;
-						var point_x = edges[edgeIndex].pointA().x;
-						var distx = edges[edgeIndex].pointA().x - edges[edgeIndex].pointB().x; 
-						var disty = edges[edgeIndex].pointA().y - edges[edgeIndex].pointB().y;
-						//alert(distx);
-						//alert(disty);
-						if(distx != 0 && disty != 0)
-						 {
-						//pos.x = point_x + sigma_x*dist_x
-							var sigma_x = (posx - point_x)/distx;
-							var sigma_y = (posy - point_y)/disty;
-							// alert(sigma_x);
-							// alert(sigma_y);
-						
-							if(Math.abs(sigma_x, sigma_y) <= 0.2)
-							{
-							  alert('clicked edge');
-							  edges[edgeIndex].setPheromone(0);
-							}
-						
-						  }
-						
-					*/
-						
-						
-						}
-				
-				 /*function getMousePos(canvas, evt) {
-				var rect = canvas.getBoundingClientRect();
-				return {
-					x: evt.clientX - rect.left,
-					y: evt.clientY - rect.top
-				};
-			}*/
-		
-		
-		// ende self
-		}
     };
-	
-	
-
 
     ACArtist.prototype._add_data = function(data) { 
-        
-		for (var i = 0; i < data.length; i++) {
-            window.var_tmp=i+1;
+        for (var i = 0; i < data.length; i++) {
             this._ac.getGraph().addCity(data[i][0], data[i][1]);
             this._ac.getGraph().createEdges();
             clearInterval(this._animationIterator);
             this._ac.reset();
             this._draw();
-        }   
+        }    
     };
     
     ACArtist.prototype._draw = function() {
@@ -462,6 +295,7 @@ var ACArtist = (function() {
         for (var edgeIndex in edges) {
             totalPheromone += edges[edgeIndex].getPheromone();
         }
+        
         for (var edgeIndex in edges) {
             var alpha = 0.2;
             if (this._ac.currentIteration() > 0) {
@@ -602,6 +436,8 @@ var DataManager = (function(){
         this._compareCurrentTourWithOptimalListener(acArtist);
     }
 
+
+
     DataManager.prototype._importAvailableDatasetList = function() {
         var choiceDataset = [];
         var client = new XMLHttpRequest();
@@ -630,92 +466,6 @@ var DataManager = (function(){
             }
         }
         client.send();
-    };
-
-    DataManager.prototype._importSelectedDatasetListener = function() {
-        var fileSelect = document.getElementById('dataset_selection');
-        fileSelect.addEventListener('change', loadDataSet);
-
-        var localDataOfThis = this;
-        function loadDataSet(e) {
-            if(fileSelect.value!=localDataOfThis.loadedDataset.name)
-            {
-                document.getElementById("user_information_output").innerHTML = "Loading...";
-                console.log(fileSelect.value)
-                localDataOfThis.loadedDataset.loaded_points= [];
-                localDataOfThis.loadedDataset.name="";
-                localDataOfThis.loadedDataset.optimal_tour=null;
-                localDataOfThis.acArtist.clearGraph();
-                var client = new XMLHttpRequest();
-                var stringFile = '../dataset/' + fileSelect.value + '.tsp';
-                client.open('GET', stringFile);
-                client.onreadystatechange = function() {
-                    if(client.status != 200)
-                        document.getElementById("user_information_output").innerHTML = "An unexpected error happened during the loading of the dataset. Please try again, or contact the administrator";
-                    if (client.readyState == 4  && client.status == 200)
-                    {
-                        var resultByLine= client.responseText.split('\n');
-                        localDataOfThis.loadedDataset.name=fileSelect.value;
-                        var temp;
-                        var arrivedToData=false;
-                        var canvasDim = Math.max(localDataOfThis.acArtist._canvas.getWidth(), localDataOfThis.acArtist._canvas.getHeight())
-                        var widthCanvas = localDataOfThis.acArtist._canvas.getWidth();
-                        var heightCanvas = localDataOfThis.acArtist._canvas.getHeight();
-                        var maxValWidth= 0;
-                        var minValWidth= 1000000;
-                        var maxValHeight= 0;
-                        var minValHeight= 1000000;
-                        for (var i = 0; i < resultByLine.length; i++) {
-                            if(resultByLine[i].localeCompare("EOF") == 0)
-                                arrivedToData=false;
-                            if(arrivedToData){
-                                temp= resultByLine[i].replace(/^ +/gm, '').split(/\ +/);
-                                if(temp[1] > maxValWidth) maxValWidth=parseFloat(temp[1]);
-                                if(temp[1] < minValWidth) minValWidth=parseFloat(temp[1]);
-                                if(temp[2] > maxValHeight) maxValHeight=parseFloat(temp[2]);
-                                if(temp[2] < minValHeight) minValHeight=parseFloat(temp[2]);
-                                localDataOfThis.loadedDataset.loaded_points.push([parseFloat(temp[1]), parseFloat(temp[2])]);
-                            }
-                            if(resultByLine[i].localeCompare("NODE_COORD_SECTION") == 0)
-                                arrivedToData=true;
-                        }
-                        var interval = Math.max(maxValWidth - minValWidth, maxValHeight - minValHeight);
-                        if(maxValHeight - minValHeight >= maxValWidth - minValWidth)
-                            var canvasDim = localDataOfThis.acArtist._canvas.getHeight();
-                        else
-                            var canvasDim = localDataOfThis.acArtist._canvas.getWidth();
-                        var interval = Math.max(maxValWidth - minValWidth, maxValHeight - minValHeight);
-                        console.log(localDataOfThis.acArtist._canvas.getHeight(), localDataOfThis.acArtist._canvas.getWidth(), canvasDim)
-                        console.log(localDataOfThis.loadedDataset.loaded_points)
-                        for(var i = 0; i < localDataOfThis.loadedDataset.loaded_points.length; i++)
-                        {
-                            localDataOfThis.loadedDataset.loaded_points[i][0]=
-                            (localDataOfThis.loadedDataset.loaded_points[i][0]-minValWidth)/interval;
-                            localDataOfThis.loadedDataset.loaded_points[i][0]= localDataOfThis.loadedDataset.loaded_points[i][0]*
-                                    (96/100*canvasDim) + 2/100*canvasDim;
-
-                            localDataOfThis.loadedDataset.loaded_points[i][1]= 
-                            (localDataOfThis.loadedDataset.loaded_points[i][1]-minValHeight)/interval;
-                            localDataOfThis.loadedDataset.loaded_points[i][1] = localDataOfThis.loadedDataset.loaded_points[i][1]*
-                                    (96/100*canvasDim) + 2/100*canvasDim;
-                            localDataOfThis.loadedDataset.loaded_points[i][1]=localDataOfThis.acArtist._canvas.getHeight()-
-                                    localDataOfThis.loadedDataset.loaded_points[i][1];
-                        }
-                        localDataOfThis.dataWasjustLoaded=true;
-                        document.getElementById("user_information_output").innerHTML = "Dataset loaded. Press 'Start' to begin.";
-                        localDataOfThis._addSelectedDatasetToCanvas();
-                    }
-                }
-                client.send();
-            }
-            else
-            {
-                localDataOfThis.dataWasjustLoaded=true;
-                document.getElementById("user_information_output").innerHTML = "Dataset loaded. Press 'Start' to begin.";
-                localDataOfThis._addSelectedDatasetToCanvas();
-            }
-            
-        }
     };
 
     DataManager.prototype._saveCustomPointsListener = function(acArtist) {
@@ -806,9 +556,70 @@ var DataManager = (function(){
                 if(client.readyState == 4 && client.status == 200) {
                     console.log(client.responseText);
                     document.getElementById("user_information_output").innerHTML = "Dataset saved!";
+                    //console.log(resultString);
                 }
             }
             client.send(params);
+        }
+    };
+
+    DataManager.prototype._importSelectedDatasetListener = function() {
+        var fileSelect = document.getElementById('dataset_selection');
+        fileSelect.addEventListener('change', loadDataSet);
+
+        var localDataOfThis = this;
+        function loadDataSet(e) {
+            document.getElementById("user_information_output").innerHTML = "Loading...";
+            console.log(fileSelect.value)
+            localDataOfThis.loadedDataset.loaded_points= [];
+            localDataOfThis.acArtist.clearGraph();
+            var client = new XMLHttpRequest();
+            var stringFile = '../dataset/' + fileSelect.value + '.tsp';
+            client.open('GET', stringFile);
+            client.onreadystatechange = function() {
+                if(client.status != 200)
+                    document.getElementById("user_information_output").innerHTML = "An unexpected error happened during the loading of the dataset. Please try again, or contact the administrator";
+                if (client.readyState == 4  && client.status == 200)
+                {
+                    var resultByLine= client.responseText.split('\n');
+                    localDataOfThis.loadedDataset.name=resultByLine[0].split(/\ +/)[1];
+                    var temp;
+                    var arrivedToData=false;
+                    var widthCanvas = localDataOfThis.acArtist._canvas.getWidth();
+                    var heightCanvas = localDataOfThis.acArtist._canvas.getHeight();
+                    var maxValWidth= 0;
+                    var minValWidth= 1000000;
+                    var maxValHeight= 0;
+                    var minValHeight= 1000000;
+                    for (var i = 0; i < resultByLine.length; i++) {
+                        if(resultByLine[i] == "EOF")
+                            arrivedToData=false;
+                        if(arrivedToData){
+                            temp= resultByLine[i].split(/\ +/);
+                            if(temp[1] > maxValWidth) maxValWidth=parseInt(temp[1]);
+                            if(temp[1] < minValWidth) minValWidth=parseInt(temp[1]);
+                            if(temp[2] > maxValHeight) maxValHeight=parseInt(temp[2]);
+                            if(temp[2] < minValHeight) minValHeight=parseInt(temp[2]);
+                            localDataOfThis.loadedDataset.loaded_points.push([parseInt(temp[1]), parseInt(temp[2])]);
+                        }
+                        if(resultByLine[i] == "NODE_COORD_SECTION")
+                            arrivedToData=true;
+                    }
+                    for(var i = 0; i < localDataOfThis.loadedDataset.loaded_points.length; i++)
+                    {
+                        localDataOfThis.loadedDataset.loaded_points[i][0]= (localDataOfThis.loadedDataset.loaded_points[i][0]-minValWidth)/(maxValWidth-minValWidth);
+                        localDataOfThis.loadedDataset.loaded_points[i][0]= localDataOfThis.loadedDataset.loaded_points[i][0]*
+                                (95/100*widthCanvas - 5/100*widthCanvas) + 5/100*widthCanvas;
+                        localDataOfThis.loadedDataset.loaded_points[i][1]= (localDataOfThis.loadedDataset.loaded_points[i][1]-minValHeight)/(maxValHeight-minValHeight);
+                        localDataOfThis.loadedDataset.loaded_points[i][1] = localDataOfThis.loadedDataset.loaded_points[i][1]*
+                                (95/100*heightCanvas - 5/100*heightCanvas) + 5/100*heightCanvas;
+                    }
+                    localDataOfThis.dataWasjustLoaded=true;
+                    document.getElementById("user_information_output").innerHTML = "Dataset loaded. Press 'Start' to begin.";
+                    localDataOfThis._addSelectedDatasetToCanvas();
+                }
+            }
+            client.send();
         }
     };
 
@@ -827,14 +638,14 @@ var DataManager = (function(){
             var ant = acArtist._ac.getGlobalBest();
             if(!ant)
             {
-                document.getElementById("user_information_output").innerHTML = "Nothing to compare. Create or choose a dataset first, then press 'Start'.";
+                document.getElementById("user_information_output").innerHTML = "Nothing to save. Create or choose a dataset first, then press 'Start'.";
                 return;
             }
             var tour = ant.getTour();
             var numberOfPoints = tour._tour.length;
             if(localDataOfThis.loadedDataset.loaded_points.length != numberOfPoints)
             {
-                document.getElementById("user_information_output").innerHTML = "Theses points don't match any saved dataset. Please Clear and load a new dataset without adding points.";
+                document.getElementById("user_information_output").innerHTML = "You've added some points, and we don't have an optimal tour for this dataset. Please Clear and load a new dataset without adding points.";
                 return;
             }
             if(localDataOfThis.loadedDataset.optimal_tour == null)
@@ -848,18 +659,16 @@ var DataManager = (function(){
                     {
                         var arrivedToData = false;
                         var resultByLine= client.responseText.split('\n');
-                        var temp_string;
                         for (var i = 0; i < resultByLine.length; i++) {
-                            temp_string=resultByLine[i].replace(/\s+/g,"");
-                            if(temp_string.localeCompare("-1") == 0)
+                            if(resultByLine[i] == "-1")
                                 arrivedToData=false;
                             if(arrivedToData)
                                 temp_tour.push(resultByLine[i]);
-                            if(temp_string.localeCompare("TOUR_SECTION") == 0)
+                            if(resultByLine[i] == "TOUR_SECTION")
                                 arrivedToData=true;
                         }
 
-                        localDataOfThis.loadedDataset.optimal_tour = new Tour(localDataOfThis.acArtist._ac.getGraph());
+                        localDataOfThis.loadedDataset.optimal_tour = new Tour(localDataOfThis.acArtist._ac.getGraph);
                         var temp_point, temp_city;
                         for(var i=0; i < temp_tour.length; i++)
                         {
@@ -870,6 +679,7 @@ var DataManager = (function(){
                                 localDataOfThis.loadedDataset.optimal_tour.addCity(temp_city);
                             }
                         }
+                        console.log(localDataOfThis.loadedDataset.optimal_tour)
                         compare()
                     }
                 }
@@ -882,9 +692,6 @@ var DataManager = (function(){
 
             function compare() {
                 acArtist._drawOptimalTour(localDataOfThis.loadedDataset.optimal_tour);
-                console.log(localDataOfThis.loadedDataset.optimal_tour.distance())
-                localDataOfThis.acArtist._ac.getGlobalBest().getTour()._distance=null;
-                console.log(localDataOfThis.acArtist._ac.getGlobalBest().getTour().distance())
                 var i=0, isEqual=true;
                 while(i< localDataOfThis.loadedDataset.optimal_tour._tour.length && isEqual)
                 {
@@ -1027,10 +834,6 @@ var Edge = (function () {
     Edge.prototype.getPheromone = function() { return this._pheromone; };
 
     Edge.prototype.getDistance = function() { return this._distance; };
-	
-	Edge.prototype.getCityA = function() {return this._cityA};
-	Edge.prototype.getCityB = function() {return this._cityB};
-	
 
     Edge.prototype.contains = function(city) {
         if (this._cityA.getX() == city.getX()) {
@@ -1418,25 +1221,21 @@ var Tour = (function () {
     
     Tour.prototype.distance = function() {
         if (this._distance == null) {
-            //console.log('DISTANCE NEW')
             var distance = 0.0;
 
             for (var tourIndex = 0; tourIndex < this._tour.length; tourIndex++) {
                 if (tourIndex >= this._tour.length-1) {
                     var edge = this._graph.getEdge(this._tour[tourIndex], this._tour[0]);
                     distance += edge.getDistance();
-                    //console.log("("+this._tour[tourIndex]._x.toFixed(2)+"-"+this._tour[tourIndex]._y.toFixed(2)+") ("+
-                    //+this._tour[0]._x.toFixed(2)+"-"+this._tour[0]._y.toFixed(2)+")  - "+ edge.getDistance().toFixed(2));
                 } else {
                     var edge = this._graph.getEdge(this._tour[tourIndex], this._tour[tourIndex+1]);
                     distance += edge.getDistance();
-                    //console.log("("+this._tour[tourIndex]._x.toFixed(2)+"-"+this._tour[tourIndex]._y.toFixed(2)+") ("+
-                    //+this._tour[tourIndex+1]._x.toFixed(2)+"-"+this._tour[tourIndex+1]._y.toFixed(2)+")  - "+ edge.getDistance().toFixed(2));
                 }
             }
-            //console.log(distance)
+
             this._distance = distance;
         }
+
         return this._distance;
     };
 
@@ -1455,12 +1254,7 @@ var Tour = (function () {
 
 
 $(document).ready(function(){
-    var getDimensionsOfTd = document.getElementsByTagName('td')[0];
-    /*if(getDimensionsOfTd.offsetWidth > getDimensionsOfTd.offsetHeight)
-        var square_dim=getDimensionsOfTd.offsetHeight;
-    else
-        var square_dim=getDimensionsOfTd.offsetWidth;*/
-    var antCanvas = new Canvas('#aco_canvas', getDimensionsOfTd.offsetWidth, getDimensionsOfTd.offsetHeight);
+    var antCanvas = new Canvas('#aco_canvas', 700, 440);
     var ac = new AntColony();
     var acArtist = new ACArtist(ac, antCanvas);
     var dataManager = new DataManager(acArtist);
@@ -1513,7 +1307,7 @@ $(document).ready(function(){
 
     $('#start_search_btn').click(function() {
         if (!ac.ready() && !dataManager.dataWasjustLoaded) {
-            document.getElementById("user_information_output").innerHTML = "Please add at least two destination nodes or a pre-selected dataset";
+            loadPopup({msg:'Please add at least two destination nodes'});
         }
         if(dataManager.dataWasjustLoaded)
         {
@@ -1522,13 +1316,12 @@ $(document).ready(function(){
 
         $('.aco_info').show();
         $('#iteration_info').html('0/' + ac.maxIterations());
-        $('#best_distance').html('-');
+        $('#best-distance').html('-');
         acArtist.runAC(function() {
             $('#iteration_info').html(ac.currentIteration() + '/' + ac.maxIterations());
-            $('#best_distance').html((ac.getGlobalBest().getTour().distance()).toFixed(2));
-            document.getElementById("user_information_output").innerHTML = "Algorithm running...";
+            $('#best-distance').html((ac.getGlobalBest().getTour().distance()).toFixed(2));
         });
-        
+        document.getElementById("user_information_output").innerHTML = "Algorithm started.";
     });
 
     $('#clear_graph').click(function() {
@@ -1536,7 +1329,8 @@ $(document).ready(function(){
         console.log("Clear");
         acArtist.clearGraph();
         dataManager.currentPointsComeFromDataset=false;
-        dataManager.dataWasjustLoaded=false;
+        dataManager.loadedDataset.name="";
+        dataManager.loadedDataset.optimal_tour=null;
         $('.aco_info').hide();
         var datasetSelect = document.getElementById('dataset_selection');
         datasetSelect.selectedIndex = "empty";

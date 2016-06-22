@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+        <script type="text/javascript" src="dist/jquery.min.js"></script>
+        <script src="js/js.js"></script>
+        <title>iML Test</title>
+    </head>
+    <body>
+        <table width="100%" height="100%">
+            <col width="70%">
+            <col width="30%">
+            <tr>
+                <td>
+                    <div style="border:1px solid #ccc" id="aco_canvas"></div>
+                </td>
+                <td>
+                    <table width="100%" height="100%">
+                        <tr height="20%">
+                            <td valign="top">
+                                <p>
+                                    Clicke here for the
+                                   <a href="index.html"  target="_blank">User manual</a> <br/>
+                                 
+                                </p>
+                            </td>
+                        </tr>
+                        <tr height="50%">
+                            <td valign="top">
+                                <hr>
+                                <div><u>Pre-selected datasets:</u></div>
+                                <select class="form-control" id="dataset_selection"></select>
+                                <div><u>Own dataset:</u></div>
+                                <input type="file" id="fileInput">
+
+ 
+                    
+                                <br/>
+								<u> Select edge: </u><div id="edge_selected"> </div>
+                <u> First vertex: </u> <select class="form-control" id="vertex_1_selected"></select>
+                <u> Second (different) vertex: </u> <select class="form-control" id="vertex_2_selected"></select> 
+								<input type="range" id="myRange">
+								<u> Value: </u><div id="pheromon_value"> </div> <button class="btn btn-default col-xs-6"  id="set_phero">Set Pheromon</button>
+                    <button class="btn btn-default col-xs-6" id="compare_with_optimal">Compare with optimal tour</button>
+                   
+                <br/>
+								<br/>
+                                <br/>
+                                <button class="btn btn-default col-xs-6" id="start_search_btn">Start</button> <button class="btn btn-default col-xs-6"  id="stop_resume">Pause / Resume</button>
+                                <br/>
+                                <br/>
+                                <button class="btn btn-default col-xs-6" id="save_personal_points">Save</button><button class="btn btn-default col-xs-6" id="clear_graph">Clear</button>
+                                <br/>
+                                <br/>
+                                <b>Debug Info</b>
+                                <br/>
+                                <u>Iteration: </u><div id="iteration_info"> </div>
+                                <u>Best Distance: </u><div id="best_distance"> </div>
+                                <u>Position Info: </u><div id="position"> </div>
+                                <div class="clear"></div>
+                            </td>
+                        </tr>
+                        <tr height="30%">
+                            <td valign="top">
+                                <hr>
+                                <div><b>System message:</b></div>
+                                <div id="user_information_output">Ready!</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
+

@@ -11,3 +11,4 @@ eil76,76,76-city problem
 kroA100,100,100-city problem A
 kroC100,100,100-city problem C
 kroD100,100,100-city problem D
+5C,5,5-city problem

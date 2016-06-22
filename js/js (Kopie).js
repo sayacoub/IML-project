@@ -638,7 +638,6 @@ var DataManager = (function(){
         this.loadedDataset.loaded_points=[];
         this.loadedDataset.optimal_tour=null;
         this.dataWasjustLoaded= false;
-        this._importSelectedDatasetFromSelectListener();
         this.currentPointsComeFromDataset=false;
         this.acArtist=acArtist;
         this._importAvailableDatasetList();
@@ -646,81 +645,6 @@ var DataManager = (function(){
         this._importSelectedDatasetListener();
         this._compareCurrentTourWithOptimalListener(acArtist);
     }
-
-
-
-DataManager.prototype._importSelectedDatasetFromSelectListener = function() {
-
-
-	var fileInput = document.getElementById('fileInput');
-	fileInput.addEventListener('change', loadDataSet);
-
-	var localDataOfThis = this;
-	function loadDataSet(e) {
-	    localDataOfThis.loaded_points= [];
-      localDataOfThis.loadedDataset.loaded_points= [];
-      localDataOfThis.loadedDataset.name="";
-      localDataOfThis.loadedDataset.optimal_tour=null;
-      localDataOfThis.acArtist.clearGraph();
-	    var file = fileInput.files[0];
-	    var reader = new FileReader();
-	    reader.onload = function(e) {
-	        var resultByLine= reader.result.split('\n');
-            localDataOfThis.loadedDataset.name=fileInput.value;
-            var temp;
-            var arrivedToData=false;
-            var canvasDim = Math.max(localDataOfThis.acArtist._canvas.getWidth(), localDataOfThis.acArtist._canvas.getHeight())
-            var widthCanvas = localDataOfThis.acArtist._canvas.getWidth();
-            var heightCanvas = localDataOfThis.acArtist._canvas.getHeight();
-            var maxValWidth= 0;
-            var minValWidth= 1000000;
-            var maxValHeight= 0;
-            var minValHeight= 1000000;
-            for (var i = 0; i < resultByLine.length; i++) {
-                if(resultByLine[i].localeCompare("EOF") == 0)
-                    arrivedToData=false;
-                if(arrivedToData){
-                    temp= resultByLine[i].replace(/^ +/gm, '').split(/\ +/);
-                    if(temp[1] > maxValWidth) maxValWidth=parseFloat(temp[1]);
-                    if(temp[1] < minValWidth) minValWidth=parseFloat(temp[1]);
-                    if(temp[2] > maxValHeight) maxValHeight=parseFloat(temp[2]);
-                    if(temp[2] < minValHeight) minValHeight=parseFloat(temp[2]);
-                    localDataOfThis.loadedDataset.loaded_points.push([parseFloat(temp[1]), parseFloat(temp[2])]);
-                }
-                if(resultByLine[i].localeCompare("NODE_COORD_SECTION") == 0)
-                    arrivedToData=true;
-            }
-            var interval = Math.max(maxValWidth - minValWidth, maxValHeight - minValHeight);
-            if(maxValHeight - minValHeight >= maxValWidth - minValWidth)
-                var canvasDim = localDataOfThis.acArtist._canvas.getHeight();
-            else
-                var canvasDim = localDataOfThis.acArtist._canvas.getWidth();
-            var interval = Math.max(maxValWidth - minValWidth, maxValHeight - minValHeight);
-            console.log(localDataOfThis.acArtist._canvas.getHeight(), localDataOfThis.acArtist._canvas.getWidth(), canvasDim)
-            console.log(localDataOfThis.loadedDataset.loaded_points)
-            for(var i = 0; i < localDataOfThis.loadedDataset.loaded_points.length; i++)
-            {
-                localDataOfThis.loadedDataset.loaded_points[i][0]=
-                (localDataOfThis.loadedDataset.loaded_points[i][0]-minValWidth)/interval;
-                localDataOfThis.loadedDataset.loaded_points[i][0]= localDataOfThis.loadedDataset.loaded_points[i][0]*
-                        (96/100*canvasDim) + 2/100*canvasDim;
-
-                localDataOfThis.loadedDataset.loaded_points[i][1]= 
-                (localDataOfThis.loadedDataset.loaded_points[i][1]-minValHeight)/interval;
-                localDataOfThis.loadedDataset.loaded_points[i][1] = localDataOfThis.loadedDataset.loaded_points[i][1]*
-                        (96/100*canvasDim) + 2/100*canvasDim;
-                localDataOfThis.loadedDataset.loaded_points[i][1]=localDataOfThis.acArtist._canvas.getHeight()-
-                        localDataOfThis.loadedDataset.loaded_points[i][1];
-            }
-            localDataOfThis.dataWasjustLoaded=true;
-            document.getElementById("user_information_output").innerHTML = "Dataset loaded. Press 'Start' to begin.";
-            localDataOfThis._addSelectedDatasetToCanvas();
-	    }
-	    reader.readAsText(file);
-	    localDataOfThis.dataWasjustLoaded=true;    
-	}
-};
-
 
     DataManager.prototype._importAvailableDatasetList = function() {
         var choiceDataset = [];
@@ -857,16 +781,16 @@ DataManager.prototype._importSelectedDatasetFromSelectListener = function() {
             }
             var tour = ant.getTour()._tour;
             var numberOfPoints = tour.length;
-            var linejump = "\n";
+            var linejump = "\x250D\u00250A";
             var blankspace = " ";
             //If it's the loaded dataset without point addition
             if(localDataOfThis.loadedDataset.loaded_points.length == numberOfPoints)
             {
                 var resultString = "NAME: " + localDataOfThis.loadedDataset.name + ".tsp" + linejump +
-                    "TYPE: TSP\n" +
-                    "COMMENT: Solution\n" +
+                    "TYPE: TSP\x250D\u00250A" +
+                    "COMMENT: Solution\x250D\u00250A" +
                     "DIMENSION: " + numberOfPoints + linejump +
-                    "TOUR_SECTION\n";
+                    "TOUR_SECTION\x250D\u00250A";
                 var j=0;
                 var cityFound=false;
                 while(j < numberOfPoints && !cityFound)
@@ -897,15 +821,15 @@ DataManager.prototype._importSelectedDatasetFromSelectListener = function() {
                     j=0;
                     cityFound=false;
                 }
-                resultString+= "-1\n";
+                resultString+= "-1\x250D\u00250A";
             }
             else
             {
                 var resultString = "NAME: " + "custom" + numberOfPoints + linejump +
-                    "TYPE: TSP\n" +
-                    "COMMENT: \n" +
+                    "TYPE: TSP\x250D\u00250A" +
+                    "COMMENT: \x250D\u00250A" +
                     "DIMENSION: " + numberOfPoints + linejump +
-                    "NODE_COORD_SECTION\n";
+                    "NODE_COORD_SECTION\x250D\u00250A";
                 for(var i = 0; i < numberOfPoints; i++)
                 {
                     resultString+= (i+1).toString() + blankspace + (tour[i]._x).toString()
@@ -934,22 +858,7 @@ DataManager.prototype._importSelectedDatasetFromSelectListener = function() {
                 }
             }
             client.send(params);
-          // window.open( "data:text/csv;charset=utf-8," +resultString );
-
-   
-    var downloadLink = document.createElement("a");
-    var blob = new Blob(["\ufeff", resultString]);
-    var url = URL.createObjectURL(blob);
-    downloadLink.href = url;
-    downloadLink.download = "data.tsp";
-
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-
-
-
-
+           window.open( "data:text/csv;charset=utf-8," +resultString );
         }
     };
 

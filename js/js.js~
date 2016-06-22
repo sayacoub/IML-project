@@ -646,9 +646,6 @@ var DataManager = (function(){
         this._importSelectedDatasetListener();
         this._compareCurrentTourWithOptimalListener(acArtist);
     }
-
-
-
 DataManager.prototype._importSelectedDatasetFromSelectListener = function() {
 
 
@@ -658,10 +655,6 @@ DataManager.prototype._importSelectedDatasetFromSelectListener = function() {
 	var localDataOfThis = this;
 	function loadDataSet(e) {
 	    localDataOfThis.loaded_points= [];
-      localDataOfThis.loadedDataset.loaded_points= [];
-      localDataOfThis.loadedDataset.name="";
-      localDataOfThis.loadedDataset.optimal_tour=null;
-      localDataOfThis.acArtist.clearGraph();
 	    var file = fileInput.files[0];
 	    var reader = new FileReader();
 	    reader.onload = function(e) {

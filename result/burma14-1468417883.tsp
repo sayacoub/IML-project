@@ -1,0 +1,21 @@
+NAME: burma14.tsp
+NB_PAUSES: 1
+NB_CHANGES: 3
+DISTANCE: [object HTMLDivElement]
+TOUR_SECTION
+1
+11
+9
+10
+2
+14
+3
+4
+5
+12
+6
+7
+13
+8
+-1
+EOF

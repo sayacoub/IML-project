@@ -31,25 +31,20 @@
                                 <hr>
                                 <div><u>Pre-selected datasets:</u></div>
                                 <select class="form-control" id="dataset_selection"></select>
-                                <div><u>Own dataset:</u></div>
-
- 
-                    
                                 <br/>
 								<u> Select edge: </u><div id="edge_selected"> </div>
                 <u> First vertex: </u> <select class="form-control" id="vertex_1_selected"></select>
                 <u> Second (different) vertex: </u> <select class="form-control" id="vertex_2_selected"></select> 
 								<input type="range" id="myRange">
 								<u> Value: </u><div id="pheromon_value"> </div> <button class="btn btn-default col-xs-6"  id="set_phero">Set Pheromon</button>
-                    <button class="btn btn-default col-xs-6" id="compare_with_optimal">Compare with optimal tour</button>
-                   
+                    <button class="btn btn-default col-xs-6"  id="stop_resume">Pause / Resume</button>
                 <br/>
 								<br/>
                                 <br/>
-                                <button class="btn btn-default col-xs-6" id="start_search_btn">Start</button> <button class="btn btn-default col-xs-6"  id="stop_resume">Pause / Resume</button>
+                                <button class="btn btn-default col-xs-6" id="start_search_btn">Start</button><button class="btn btn-default col-xs-6" id="clear_graph">Clear</button>
                                 <br/>
                                 <br/>
-                                <button class="btn btn-default col-xs-6" id="save_personal_points">Save</button><button class="btn btn-default col-xs-6" id="clear_graph">Clear</button>
+                                <button class="btn btn-default col-xs-6" id="save_personal_points">Save</button><button class="btn btn-default col-xs-6" id="compare_with_optimal">Compare with optimal tour</button>
                                 <br/>
                                 <br/>
                                 <b>Debug Info</b>

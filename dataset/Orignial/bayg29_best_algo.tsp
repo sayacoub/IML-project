@@ -1,0 +1,36 @@
+NAME: bayg29.tsp
+TYPE: TSP
+COMMENT: Solution
+DIMENSION: 29
+TOUR_SECTION
+1
+28
+6
+12
+9
+5
+26
+29
+3
+20
+10
+4
+15
+18
+14
+22
+17
+11
+19
+25
+7
+23
+8
+27
+24
+16
+13
+2
+21
+-1
+EOF

@@ -11,3 +11,7 @@ hr {
     margin-top: 0px !important; 
     margin-bottom: 0px !important; 
 }
+
+.tab_validated {
+	background-color: #5cb85c !important; 
+}
